@@ -2,7 +2,7 @@
 // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
 
 // the link to your model provided by Teachable Machine export panel
-const URL = "./OX_model/";
+const URL = "./XHandsUp_model/";
 let model, webcam, ctx, labelContainer, maxPredictions, result_XHandsUp;
 
 async function init() {
