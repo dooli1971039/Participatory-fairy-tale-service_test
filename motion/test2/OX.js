@@ -3,7 +3,7 @@
 
 // the link to your model provided by Teachable Machine export panel
 const URL = "./OX_model/";
-let model, webcam, ctx, labelContainer, maxPredictions;
+let model, webcam, ctx, labelContainer, maxPredictions, result_OX;
 
 async function init() {
     const modelURL = URL + "model.json";
@@ -13,7 +13,7 @@ async function init() {
     // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
     // Note: the pose library adds a tmPose object to your window (window.tmPose)
     model = await tmPose.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
+    maxPredictions = model.getTotalClasses(); //클래스 개수 => O,X 2개
 
     // Convenience function to setup a webcam
     const size = 200;
@@ -33,6 +33,8 @@ async function init() {
         // and class labels
         labelContainer.appendChild(document.createElement("div"));
     }
+
+    result_OX = document.getElementById("result");
 }
 
 async function loop(timestamp) {
@@ -48,9 +50,17 @@ async function predict() {
     // Prediction 2: run input through teachable machine classification model
     const prediction = await model.predict(posenetOutput);
 
+    //이 부분이 html의 텍스트 업데이트 하는 부분
     for (let i = 0; i < maxPredictions; i++) {
         const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
         labelContainer.childNodes[i].innerHTML = classPrediction;
+    }
+
+    //결과 출력
+    if (prediction[0].probability >= predict[1].probability) {
+        result_OX.innerText = `You choose ${prediction[1].className}`;
+    } else {
+        result_OX.innerText = `You choose ${prediction[1].className}`;
     }
 
     // finally draw the poses
