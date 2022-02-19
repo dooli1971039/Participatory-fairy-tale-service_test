@@ -16,7 +16,7 @@ async function init() {
     maxPredictions = model.getTotalClasses(); //클래스 개수 => O,X 2개
 
     // Convenience function to setup a webcam
-    const size = 200;
+    const size = 400;
     const flip = true; // whether to flip the webcam
     webcam = new tmPose.Webcam(size, size, flip); // width, height, flip
     await webcam.setup(); // request access to the webcam
