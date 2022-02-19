@@ -59,10 +59,16 @@ async function predict() {
     //결과 출력
     const O_result = parseFloat(labelContainer.childNodes[0].innerHTML.split(":")[1]);
     const X_result = parseFloat(labelContainer.childNodes[1].innerHTML.split(":")[1]);
-    if (O_result >= X_result) {
-        result_OX.innerText = "You choose O";
+    const StandUp_result = parseFloat(labelContainer.childNodes[2].innerHTML.split(":")[1]);
+    if (StandUp_result > O_result || StandUp_result > X_result) {
+        //그냥 서 있음 (대기)
+        result_OX.innerText = "Make any Motion";
     } else {
-        result_OX.innerText = "You choose X";
+        if (O_result >= X_result) {
+            result_OX.innerText = "You choose O";
+        } else {
+            result_OX.innerText = "You choose X";
+        }
     }
 
     // finally draw the poses
