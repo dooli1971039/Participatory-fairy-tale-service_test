@@ -51,16 +51,20 @@ async function predict() {
     const prediction = await model.predict(posenetOutput);
 
     //이 부분이 html의 텍스트 업데이트 하는 부분
-    for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-        labelContainer.childNodes[i].innerHTML = classPrediction;
-    }
+    const O_result = prediction[0].probability.toFixed(2);
+    const X_result = prediction[1].probability.toFixed(2);
+    labelContainer.childNodes[0].innerHTML = prediction[0].className + ": " + O_result;
+    labelContainer.childNodes[1].innerHTML = prediction[1].className + ": " + X_result;
+    // for (let i = 0; i < maxPredictions; i++) {
+    //     const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+    //     labelContainer.childNodes[i].innerHTML = classPrediction;
+    // }
 
     //결과 출력
-    if (prediction[0].probability >= predict[1].probability) {
-        result_OX.innerText = `You choose ${prediction[1].className}`;
+    if (O_result >= X_result) {
+        result_OX.innerText = "You choose O";
     } else {
-        result_OX.innerText = `You choose ${prediction[1].className}`;
+        result_OX.innerText = "You choose X";
     }
 
     // finally draw the poses
