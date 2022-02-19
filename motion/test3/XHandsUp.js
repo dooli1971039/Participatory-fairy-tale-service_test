@@ -13,7 +13,7 @@ async function init() {
     // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
     // Note: the pose library adds a tmPose object to your window (window.tmPose)
     model = await tmPose.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses(); //클래스 개수 => O,X 2개
+    maxPredictions = model.getTotalClasses(); //클래스 개수 => X,HandsUp,StandUp 3개
 
     // Convenience function to setup a webcam
     const size = 400;
