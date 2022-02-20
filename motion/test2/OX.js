@@ -1,6 +1,6 @@
 // More API functions here:
 // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
-
+//https://github.com/googlecreativelab/teachablemachine-community/blob/master/libraries/pose/README.md
 // the link to your model provided by Teachable Machine export panel
 const URL = "./OX_model/";
 let model, webcam, ctx, labelContainer, maxPredictions, result_OX;
@@ -37,11 +37,27 @@ async function init() {
     result_OX = document.getElementById("result");
 }
 
+let END = false;
+let first_audio = true;
 async function loop(timestamp) {
-    webcam.update(); // update the webcam frame
-    await predict();
-    window.requestAnimationFrame(loop);
+    if (!END) {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+        if (first_audio) {
+            let audio = new Audio(URL + "motion.mp3");
+            audio.play();
+            first_audio = false;
+        }
+    } else {
+        webcam.stop();
+    }
 }
+
+let status = "stand";
+let Stand_time = 0;
+let O_time = 0;
+let X_time = 0;
 
 async function predict() {
     // Prediction #1: run input through posenet
@@ -49,27 +65,89 @@ async function predict() {
     const {pose, posenetOutput} = await model.estimatePose(webcam.canvas);
     // Prediction 2: run input through teachable machine classification model
     const prediction = await model.predict(posenetOutput);
+    result_OX.innerText = "Make any Motion";
+    if (prediction[2].probability.toFixed(2) >= 0.9) {
+        if (status === "stand") {
+            Stand_time += 1;
+            O_time = 0;
+            X_time = 0;
+        } else {
+            Stand_time = 0;
+        }
+        status = "stand";
+
+        if (Stand_time === 500) {
+            let audio = new Audio(URL + "motion.mp3");
+            audio.play();
+            result_OX.innerText = "Make any Motion";
+            Stand_time = 0;
+            END = false;
+        }
+
+        status = "stand";
+    } else if (prediction[0].probability.toFixed(2) >= 0.9) {
+        if (status === "choose_O") {
+            O_time += 1;
+            Stand_time = 0;
+            X_time = 0;
+        } else {
+            O_time = 0;
+        }
+        status = "choose_O";
+
+        if (O_time === 50) {
+            let audio = new Audio(URL + "O_choose.mp3");
+            audio.play();
+            result_OX.innerText = "You choose O";
+            END = true;
+        }
+    } else if (prediction[1].probability.toFixed(2) >= 0.9) {
+        if (status === "choose_X") {
+            X_time += 1;
+            Stand_time = 0;
+            O_time = 0;
+        } else {
+            //X가 아니다가 X가 된 경우
+            X_time = 0;
+        }
+        status = "choose_X";
+        if (X_time === 50) {
+            let audio = new Audio(URL + "X_choose.mp3");
+            audio.play();
+            result_OX.innerText = "You choose X";
+            END = true;
+        }
+    }
 
     //이 부분이 html의 텍스트 업데이트 하는 부분
     for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        const classPrediction =
+            prediction[i].className +
+            ": " +
+            prediction[i].probability.toFixed(2);
         labelContainer.childNodes[i].innerHTML = classPrediction;
     }
 
-    //결과 출력
-    const O_result = parseFloat(labelContainer.childNodes[0].innerHTML.split(":")[1]);
-    const X_result = parseFloat(labelContainer.childNodes[1].innerHTML.split(":")[1]);
-    const StandUp_result = parseFloat(labelContainer.childNodes[2].innerHTML.split(":")[1]);
-    if (StandUp_result > O_result || StandUp_result > X_result) {
-        //그냥 서 있음 (대기)
-        result_OX.innerText = "Make any Motion";
-    } else {
-        if (O_result >= X_result) {
-            result_OX.innerText = "You choose O";
-        } else {
-            result_OX.innerText = "You choose X";
-        }
-    }
+    // //결과 출력
+    // const O_result = parseFloat(
+    //     labelContainer.childNodes[0].innerHTML.split(":")[1]
+    // );
+    // const X_result = parseFloat(
+    //     labelContainer.childNodes[1].innerHTML.split(":")[1]
+    // );
+    // const StandUp_result = parseFloat(
+    //     labelContainer.childNodes[2].innerHTML.split(":")[1]
+    // );
+    // if (StandUp_result > O_result || StandUp_result > X_result) {
+    //     //그냥 서 있음 (대기)
+    //     result_OX.innerText = "Make any Motion";
+    // } else {
+    //     if (O_result >= X_result) {
+    //         result_OX.innerText = "You choose O";
+    //     } else {
+    //         result_OX.innerText = "You choose X";
+    //     }
+    // }
 
     // finally draw the poses
     drawPose(pose);
