@@ -12,8 +12,9 @@ body {
     flex-direction: row;
 }
 
-#clock #timer {
+#clock {
     display: inline-block;
+    flex-direction: column;
 }
 
 #label-container {
