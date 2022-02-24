@@ -1,9 +1,6 @@
 //https://teachablemachine.withgoogle.com/models/pz2oSx5bQ/
 //https://github.com/googlecreativelab/teachablemachine-community/blob/master/libraries/pose/README.md
-// More API functions here:
-// https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
 
-// the link to your model provided by Teachable Machine export panel
 const URL = "./my_model/";
 let model, webcam, ctx, labelContainer, maxPredictions;
 
@@ -15,7 +12,7 @@ async function init() {
     const metadataURL = URL + "metadata.json";
 
     model = await tmPose.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
+    maxPredictions = model.getTotalClasses(); //클래스 개수 => O, X, Stand 3개
 
     // 웹캠 시작
     const size = 400;
@@ -77,6 +74,8 @@ async function init() {
     };
 }
 
+// teachable machine 기본 코드는 start버튼을 눌렀을 때 시작하게 되어있으나
+// 우리 코드에서는 그냥 바로 실행하도록 한다.
 init();
 
 async function loop(timestamp) {
