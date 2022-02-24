@@ -1,18 +1,1 @@
-{
-    "tfjsVersion": "1.3.1",
-    "tmVersion": "0.8.6",
-    "packageVersion": "0.8.6",
-    "packageName": "@teachablemachine/pose",
-    "timeStamp": "2022-02-19T14:14:24.018Z",
-    "userMetadata": {},
-    "modelName": "XHandsUp",
-    "labels": ["X", "HandsUp", "Stand"],
-    "modelSettings": {
-        "posenet": {
-            "architecture": "MobileNetV1",
-            "outputStride": 16,
-            "inputResolution": 257,
-            "multiplier": 0.75
-        }
-    }
-}
+{"tfjsVersion":"1.3.1","tmVersion":"0.8.6","packageVersion":"0.8.6","packageName":"@teachablemachine/pose","timeStamp":"2022-02-24T15:32:11.184Z","userMetadata":{},"modelName":"XHandsUp","labels":["X","HandsUp","StandUp"],"modelSettings":{"posenet":{"architecture":"MobileNetV1","outputStride":16,"inputResolution":257,"multiplier":0.75}}}
