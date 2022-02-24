@@ -1,21 +1,20 @@
-// More API functions here:
-// https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/pose
+//https://teachablemachine.withgoogle.com/models/DILu5MQpi/
 //https://github.com/googlecreativelab/teachablemachine-community/blob/master/libraries/pose/README.md
-// the link to your model provided by Teachable Machine export panel
+
 const URL = "./XHandsUp_model/";
-let model, webcam, ctx, labelContainer, maxPredictions, result_XHandsUp;
+let model, webcam, ctx, labelContainer, maxPredictions;
+
+let status = 2; //0:X, 1:HandsUp, 2:Stand
+let keep_time = [0, 0, 0]; //각각의 지속 시간
 
 async function init() {
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
 
-    // load the model and metadata
-    // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-    // Note: the pose library adds a tmPose object to your window (window.tmPose)
     model = await tmPose.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses(); //클래스 개수 => X,HandsUp,StandUp 3개
+    maxPredictions = model.getTotalClasses(); //클래스 개수 => X,HandsUp,Stand 3개
 
-    // Convenience function to setup a webcam
+    // 웹캠
     const size = 400;
     const flip = true; // whether to flip the webcam
     webcam = new tmPose.Webcam(size, size, flip); // width, height, flip
@@ -24,6 +23,7 @@ async function init() {
     window.requestAnimationFrame(loop);
 
     // append/get elements to the DOM
+    const note = document.getElementById("note");
     const canvas = document.getElementById("canvas");
     canvas.width = size;
     canvas.height = size;
@@ -34,89 +34,70 @@ async function init() {
         labelContainer.appendChild(document.createElement("div"));
     }
 
-    result_XHandsUp = document.getElementById("result");
+    let audio = new Audio(URL + "motion.mp3"); //안내 음성
+    audio.play();
+    note.innerHTML = "5초간 자세를 유지하세요";
+    audio.onended = function () {
+        //맨 처음 안내하는 오디오 끝나면 실행
+        note.innerHTML = "준비";
+        setTimeout(() => {
+            note.innerHTML = "시작";
+        }, 500);
+
+        let check_time = setInterval(() => {
+            if (keep_time[status] == 0) {
+                //다른 모션에서 바뀌어 들어옴
+                keep_time[0] = keep_time[1] = keep_time[2] = 0;
+                keep_time[status]++;
+            } else {
+                if (status == 0)
+                    note.innerHTML = `X를 ${keep_time[status]}초 유지하셨습니다.`;
+                else if (status == 1)
+                    note.innerHTML = `HandsUp을 ${keep_time[status]}초 유지하셨습니다.`;
+
+                if (status != 2 && keep_time[status] == 5) {
+                    if (status == 0) {
+                        new Audio(URL + "X_choose.mp3").play();
+                        note.innerHTML = `X를 선택하셨습니다.`;
+                    } else {
+                        new Audio(URL + "HandsUp_choose.mp3").play();
+                        note.innerHTML = `HandsUp를 선택하셨습니다.`;
+                    }
+                    clearInterval(check_time);
+                    webcam.stop();
+                    //이러고 다음 페이지로 넘어가면 될듯
+                }
+                keep_time[status]++;
+            }
+        }, 1000);
+    };
 }
 
-let END = false;
-let first_audio = true;
+// teachable machine 기본 코드는 start버튼을 눌렀을 때 시작하게 되어있으나
+// 우리 코드에서는 그냥 바로 실행하도록 한다.
+
+init();
+
 async function loop(timestamp) {
-    if (!END) {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-        if (first_audio) {
-            let audio = new Audio(URL + "motion.mp3");
-            audio.play();
-            first_audio = false;
-        }
-    } else {
-        webcam.stop();
-    }
+    webcam.update(); // update the webcam frame
+    await predict();
+    window.requestAnimationFrame(loop);
 }
-
-let status = "stand";
-let Stand_time = 0;
-let XHandsUp_time = 0;
-let X_time = 0;
 
 async function predict() {
-    // Prediction #1: run input through posenet
-    // estimatePose can take in an image, video or canvas html element
     const {pose, posenetOutput} = await model.estimatePose(webcam.canvas);
-    // Prediction 2: run input through teachable machine classification model
     const prediction = await model.predict(posenetOutput);
-    result_XHandsUp.innerText = "Make any Motion";
+
     if (prediction[2].probability.toFixed(2) >= 0.9) {
-        if (status === "stand") {
-            Stand_time += 1;
-            XHandsUp_time = 0;
-            X_time = 0;
-        } else {
-            Stand_time = 0;
-        }
-        status = "stand";
-
-        if (Stand_time === 500) {
-            let audio = new Audio(URL + "motion.mp3");
-            audio.play();
-            result_XHandsUp.innerText = "Make any Motion";
-            Stand_time = 0;
-            END = false;
-        }
-
-        status = "stand";
-    } else if (prediction[1].probability.toFixed(2) >= 0.9) {
-        if (status === "choose_HandsUp") {
-            XHandsUp_time += 1;
-            Stand_time = 0;
-            X_time = 0;
-        } else {
-            XHandsUp_time = 0;
-        }
-        status = "choose_HandsUp";
-
-        if (XHandsUp_time === 50) {
-            let audio = new Audio(URL + "HandsUp_choose.mp3");
-            audio.play();
-            result_XHandsUp.innerText = "You choose HandsUp";
-            END = true;
-        }
+        //Stand
+        keep_time[0] = keep_time[1] = 0;
+        status = 2;
     } else if (prediction[0].probability.toFixed(2) >= 0.9) {
-        if (status === "choose_X") {
-            X_time += 1;
-            Stand_time = 0;
-            XHandsUp_time = 0;
-        } else {
-            //X가 아니다가 X가 된 경우
-            X_time = 0;
-        }
-        status = "choose_X";
-        if (X_time === 50) {
-            let audio = new Audio(URL + "X_choose.mp3");
-            audio.play();
-            result_XHandsUp.innerText = "You choose X";
-            END = true;
-        }
+        //X
+        status = 0;
+    } else if (prediction[1].probability.toFixed(2) >= 0.9) {
+        //HandsUp
+        status = 1;
     }
 
     //이 부분이 html의 텍스트 업데이트 하는 부분
@@ -126,27 +107,6 @@ async function predict() {
             ": " +
             prediction[i].probability.toFixed(2);
         labelContainer.childNodes[i].innerHTML = classPrediction;
-    }
-
-    //결과 출력
-    const X_result = parseFloat(
-        labelContainer.childNodes[0].innerHTML.split(":")[1]
-    );
-    const HandsUp_result = parseFloat(
-        labelContainer.childNodes[1].innerHTML.split(":")[1]
-    );
-    const StandUp_result = parseFloat(
-        labelContainer.childNodes[2].innerHTML.split(":")[1]
-    );
-    if (StandUp_result > X_result || StandUp_result > HandsUp_result) {
-        //그냥 서 있음 (대기)
-        result_XHandsUp.innerText = "Make any Motion";
-    } else {
-        if (X_result >= HandsUp_result) {
-            result_XHandsUp.innerText = "You choose X";
-        } else {
-            result_XHandsUp.innerText = "You choose HandsUp";
-        }
     }
 
     // finally draw the poses
