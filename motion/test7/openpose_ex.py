@@ -16,76 +16,74 @@ POSE_PAIRS = [ ["Head", "Neck"], ["Neck", "RShoulder"], ["RShoulder", "RElbow"],
 protoFile = "D:/Participatory-fairy-tale-service_test/motion/test7/file/pose_deploy_linevec_faster_4_stages.prototxt"
 weightsFile = "D:/Participatory-fairy-tale-service_test/motion/test7/file/pose_iter_160000.caffemodel"
  
-# 위의 path에 있는 network 불러오기
+# 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
+
 
 ###카메라랑 연결...?
 capture = cv2.VideoCapture(0) #카메라 정보 받아옴
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640) #카메라 속성 설정
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480) # width:너비, height: 높이
 
-# # 이미지 읽어오기
-# image = cv2.imread("D:/Participatory-fairy-tale-service_test/motion/test7/img/yoga.jpg")
+# 이미지 읽어오기
+image = cv2.imread("D:/Participatory-fairy-tale-service_test/motion/test7/img/stretching.jpg")
 
-# # frame.shape = 불러온 이미지에서 height, width, color 받아옴
-# imageHeight, imageWidth, _ = image.shape
+# frame.shape = 불러온 이미지에서 height, width, color 받아옴
+imageHeight, imageWidth, _ = image.shape
  
-# # network에 넣기위해 전처리
-# inpBlob = cv2.dnn.blobFromImage(image, 1.0 / 255, (imageWidth, imageHeight), (0, 0, 0), swapRB=False, crop=False)
+# network에 넣기위해 전처리
+inpBlob = cv2.dnn.blobFromImage(image, 1.0 / 255, (imageWidth, imageHeight), (0, 0, 0), swapRB=False, crop=False)
  
- #반복문을 통해 카메라에서 프레임을 지속적으로 받아옴
-while cv2.waitKey(1) != ord('q'):  #q 입력하면 끝남
-    ret, frame = capture.read()  #카메라 상태 및 프레임 받아옴
-    inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (640, 480), (0, 0, 0), swapRB=False, crop=False)
-    
-    # network에 넣어주기
-    net.setInput(inpBlob)
+# network에 넣어주기
+net.setInput(inpBlob)
 
-    # 결과 받아오기
-    output = net.forward()
+# 결과 받아오기
+output = net.forward()
 
-    # output.shape[0] = 이미지 ID, [1] = 출력 맵의 높이, [2] = 너비
-    H = output.shape[2]
-    W = output.shape[3]
+# output.shape[0] = 이미지 ID, [1] = 출력 맵의 높이, [2] = 너비
+H = output.shape[2]
+W = output.shape[3]
+print("이미지 ID : ", len(output[0]), ", H : ", output.shape[2], ", W : ",output.shape[3]) # 이미지 ID
 
-    # 키포인트 검출시 이미지에 그려줌
-    points = []
-    for i in range(0,15):
-        # 해당 신체부위 신뢰도 얻음.
-        probMap = output[0, i, :, :]
-    
-        # global 최대값 찾기
-        minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
-
-        # 원래 이미지에 맞게 점 위치 변경
-        x = (640 * point[0]) / W
-        y = (480 * point[1]) / H
-
-        # 키포인트 검출한 결과가 0.1보다 크면(검출한곳이 위 BODY_PARTS랑 맞는 부위면) points에 추가, 검출했는데 부위가 없으면 None으로    
-        if prob > 0.1 :    
-            cv2.circle(frame, (int(x), int(y)), 3, (0, 255, 255), thickness=-1, lineType=cv2.FILLED) # circle(그릴곳, 원의 중심, 반지름, 색)
-            cv2.putText(frame, "{}".format(i), (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, lineType=cv2.LINE_AA)
-            points.append((int(x), int(y)))
-        else :
-            points.append(None)
-    
-    
-    #cv2.imshow("VideoFrame", frame) #윈도우 창에 이미지 띄움
-    # 이미지 복사
-    #imageCopy = frame
-
-    # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
-    for pair in POSE_PAIRS:
-        partA = pair[0]             # Head
-        partA = BODY_PARTS[partA]   # 0
-        partB = pair[1]             # Neck
-        partB = BODY_PARTS[partB]   # 1
-        
-        #print(partA," 와 ", partB, " 연결\n")
-        if points[partA] and points[partB]:
-            cv2.line(frame, points[partA], points[partB], (0, 255, 0), 2)
-            
-        cv2.imshow("Output-Keypoints",frame)
+# 키포인트 검출시 이미지에 그려줌
+points = []
+for i in range(0,15):
+    # 해당 신체부위 신뢰도 얻음.
+    probMap = output[0, i, :, :]
  
-capture.release()  #카메라 장치에서 받아온 메모리 해제
-cv2.destroyAllWindows() #모든 윈도우 창 닫음
+    # global 최대값 찾기
+    minVal, prob, minLoc, point = cv2.minMaxLoc(probMap)
+
+    # 원래 이미지에 맞게 점 위치 변경
+    x = (imageWidth * point[0]) / W
+    y = (imageHeight * point[1]) / H
+
+    # 키포인트 검출한 결과가 0.1보다 크면(검출한곳이 위 BODY_PARTS랑 맞는 부위면) points에 추가, 검출했는데 부위가 없으면 None으로    
+    if prob > 0.1 :    
+        cv2.circle(image, (int(x), int(y)), 3, (0, 255, 255), thickness=-1, lineType=cv2.FILLED)       # circle(그릴곳, 원의 중심, 반지름, 색)
+        cv2.putText(image, "{}".format(i), (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, lineType=cv2.LINE_AA)
+        points.append((int(x), int(y)))
+    else :
+        points.append(None)
+
+cv2.imshow("Output-Keypoints",image)
+cv2.waitKey(0)
+
+# 이미지 복사
+imageCopy = image
+
+# 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
+for pair in POSE_PAIRS:
+    partA = pair[0]             # Head
+    partA = BODY_PARTS[partA]   # 0
+    partB = pair[1]             # Neck
+    partB = BODY_PARTS[partB]   # 1
+    
+    #print(partA," 와 ", partB, " 연결\n")
+    if points[partA] and points[partB]:
+        cv2.line(imageCopy, points[partA], points[partB], (0, 255, 0), 2)
+
+
+cv2.imshow("Output-Keypoints",imageCopy)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
