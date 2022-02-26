@@ -4,3 +4,5 @@ face/test1/img
 .env
 
 motion/test7/img
+.prototxt
+.caffemodel
