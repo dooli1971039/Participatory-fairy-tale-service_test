@@ -68,7 +68,7 @@ async function init() {
                     clearInterval(check_time);
                     webcam.stop();
                     //이러고 다음 페이지로 넘어가면 될듯
-                } else if (status == 1 && keep_time[status] == 7) {
+                } else if (status == 1 && keep_time[status] == 10) {
                     new Audio(URL + "Fail.mp3").play();
                     note.innerHTML = `자세 유지에 실패하셨습니다.`;
                     clearInterval(check_time);
@@ -96,7 +96,7 @@ async function predict() {
     const prediction = await model.predict(posenetOutput);
 
     if (
-        prediction[0].probability.toFixed(2) >= 0 / 9 ||
+        prediction[0].probability.toFixed(2) >= 0.9 ||
         prediction[1].probability.toFixed(2) >= 0.9
     ) {
         //정상
