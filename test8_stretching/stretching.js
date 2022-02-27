@@ -11,15 +11,15 @@
 const URL = "./my_model/";
 let model, webcam, ctx, labelContainer, maxPredictions;
 
-let status = 2; //0:O, 1:X, 2:Stand
-let keep_time = [0, 0, 0]; //각각의 지속 시간
+let status = 1; //0:정상, 1:stand or fail
+let keep_time = [0, 0]; //각각의 지속 시간
 
 async function init() {
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
 
     model = await tmPose.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses(); //클래스 개수 => O, X, Stand 3개
+    maxPredictions = model.getTotalClasses();
 
     // 웹캠 시작
     const size = 400;
@@ -30,7 +30,6 @@ async function init() {
     window.requestAnimationFrame(loop);
 
     // append/get elements to the DOM
-
     const note = document.getElementById("note");
     const canvas = document.getElementById("canvas");
     canvas.width = size;
@@ -44,7 +43,7 @@ async function init() {
 
     let audio = new Audio(URL + "motion.mp3");
     audio.play();
-    note.innerHTML = "5초간 자세를 유지하세요";
+    note.innerHTML = "10초간 자세를 유지하세요";
     audio.onended = function () {
         //맨 처음 안내하는 오디오 끝나면 실행
         note.innerHTML = "준비";
@@ -55,22 +54,23 @@ async function init() {
         let check_time = setInterval(() => {
             if (keep_time[status] == 0) {
                 //다른 모션에서 바뀌어 들어옴
-                keep_time[0] = keep_time[1] = keep_time[2] = 0;
+                keep_time[0] = keep_time[1] = 0;
                 keep_time[status]++;
             } else {
                 if (status == 0)
-                    note.innerHTML = `O를 ${keep_time[status]}초 유지하셨습니다.`;
+                    note.innerHTML = `정확한 자세를 ${keep_time[status]}초 유지하셨습니다.`;
                 else if (status == 1)
-                    note.innerHTML = `X를 ${keep_time[status]}초 유지하셨습니다.`;
+                    note.innerHTML = `정확한 자세가 아닙니다: ${keep_time[status]}초`;
 
-                if (status != 2 && keep_time[status] == 5) {
-                    if (status == 0) {
-                        new Audio(URL + "O_choose.mp3").play();
-                        note.innerHTML = `O를 선택하셨습니다.`;
-                    } else {
-                        new Audio(URL + "X_choose.mp3").play();
-                        note.innerHTML = `X를 선택하셨습니다.`;
-                    }
+                if (status == 0 && keep_time[status] == 10) {
+                    // new Audio(URL + "O_choose.mp3").play();
+                    // note.innerHTML = `O를 선택하셨습니다.`;
+                    clearInterval(check_time);
+                    webcam.stop();
+                    //이러고 다음 페이지로 넘어가면 될듯
+                } else if (status == 1 && keep_time[status] == 7) {
+                    // new Audio(URL + "X_choose.mp3").play();
+                    // note.innerHTML = `X를 선택하셨습니다.`;
                     clearInterval(check_time);
                     webcam.stop();
                     //이러고 다음 페이지로 넘어가면 될듯
@@ -95,15 +95,16 @@ async function predict() {
     const {pose, posenetOutput} = await model.estimatePose(webcam.canvas);
     const prediction = await model.predict(posenetOutput);
 
-    if (prediction[2].probability.toFixed(2) >= 0.9) {
-        //Stand
-        keep_time[0] = keep_time[1] = 0;
-        status = 2;
-    } else if (prediction[0].probability.toFixed(2) >= 0.9) {
-        //O
+    if (
+        prediction[0].probability.toFixed(2) >= 0 / 9 ||
+        prediction[1].probability.toFixed(2) >= 0.9
+    ) {
+        //정상
+        keep_time[1] = 0;
         status = 0;
-    } else if (prediction[1].probability.toFixed(2) >= 0.9) {
-        //X
+    } else {
+        //stand 또는 fail
+        keep_time[0] = 0;
         status = 1;
     }
 
