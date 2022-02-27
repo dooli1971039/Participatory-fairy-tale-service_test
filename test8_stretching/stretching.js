@@ -63,14 +63,14 @@ async function init() {
                     note.innerHTML = `정확한 자세가 아닙니다: ${keep_time[status]}초`;
 
                 if (status == 0 && keep_time[status] == 10) {
-                    // new Audio(URL + "O_choose.mp3").play();
-                    // note.innerHTML = `O를 선택하셨습니다.`;
+                    new Audio(URL + "OK.mp3").play();
+                    note.innerHTML = `정확한 자세입니다.`;
                     clearInterval(check_time);
                     webcam.stop();
                     //이러고 다음 페이지로 넘어가면 될듯
                 } else if (status == 1 && keep_time[status] == 7) {
-                    // new Audio(URL + "X_choose.mp3").play();
-                    // note.innerHTML = `X를 선택하셨습니다.`;
+                    new Audio(URL + "Fail.mp3").play();
+                    note.innerHTML = `자세 유지에 실패하셨습니다.`;
                     clearInterval(check_time);
                     webcam.stop();
                     //이러고 다음 페이지로 넘어가면 될듯
