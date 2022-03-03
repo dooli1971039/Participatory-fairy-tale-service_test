@@ -9,15 +9,11 @@ https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test
 
 
 
-## XHandsUp  
+## XHandsUp 모션인식  
 https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test3/index.html
 
 
 
-#SideStretching  
-https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test4/index.html
+## Stretching 모션인식  
+https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test8_stretching/index.html
 
-
-
-#LegUp  
-https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test5/index.html
