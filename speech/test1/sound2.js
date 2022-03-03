@@ -10,7 +10,9 @@ recognition.interimResults = true; //아직 끝나지 않은 상태의 음성을
 recognition.lang = "ko-KR"; //한국어 인식
 const URL = "./sounds/";
 
-async function init() {
+const bb = document.querySelector("#but");
+
+function init() {
     let h2 = document.createElement("h2");
     const words = document.querySelector(".words");
     words.appendChild(h2);
@@ -20,26 +22,26 @@ async function init() {
     audio.onended = function () {
         //안내 오디오 끝나면 실행
         recognition.start();
-        recognition.onstart = function () {
-            makeNewTextContent(); // 음성 인식 시작시마다 새로운 문단을 추가한다.
-        };
+
         recognition.onend = function () {
             //음성인식이 끝나면 다시 시작
             recognition.start();
         };
+        //onresult: 음성인식 서비스가 결과를 리턴하면 생기는 이벤트
         recognition.onresult = function (e) {
             let texts = Array.from(e.results)
                 .map((results) => results[0].transcript)
                 .join("");
 
-            p.textContent = texts;
+            words.textContent = texts;
+
+            if (texts === "안녕") {
+                console.log("##");
+                recognition.abort(); //왜... 안 멈추냐...
+            }
         };
     };
 }
 
-init();
-
-function makeNewTextContent() {
-    p = document.createElement("p");
-    document.querySelector(".words").appendChild(p);
-}
+bb.addEventListener("click", init);
+//init();
