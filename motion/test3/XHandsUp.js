@@ -54,6 +54,8 @@ async function init() {
                     note.innerHTML = `X를 ${keep_time[status]}초 유지하셨습니다.`;
                 else if (status == 1)
                     note.innerHTML = `HandsUp을 ${keep_time[status]}초 유지하셨습니다.`;
+                else if (status == 2)
+                    note.innerHTML = `${keep_time[status]}초간 서계십니다.`;
 
                 if (status != 2 && keep_time[status] == 5) {
                     if (status == 0) {
@@ -67,7 +69,7 @@ async function init() {
                     webcam.stop();
                     //이러고 다음 페이지로 넘어가면 될듯
                 }
-                keep_time[status]++;
+                keep_time[status]++; //시간은 항상 세고 있다.
             }
         }, 1000);
     };
