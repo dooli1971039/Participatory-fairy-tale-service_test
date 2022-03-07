@@ -96,8 +96,8 @@ async function predict() {
     const prediction = await model.predict(posenetOutput);
 
     if (
-        prediction[0].probability.toFixed(2) >= 0.9 ||
-        prediction[1].probability.toFixed(2) >= 0.9
+        prediction[0].probability.toFixed(2) >= 0.85 ||
+        prediction[1].probability.toFixed(2) >= 0.85
     ) {
         //정상
         keep_time[1] = 0;
