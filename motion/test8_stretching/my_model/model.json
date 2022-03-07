@@ -2,7 +2,7 @@
     "modelTopology": {
         "class_name": "Sequential",
         "config": {
-            "name": "sequential_6",
+            "name": "sequential_12",
             "layers": [
                 {
                     "class_name": "Dense",
@@ -28,7 +28,7 @@
                         "activity_regularizer": null,
                         "kernel_constraint": null,
                         "bias_constraint": null,
-                        "name": "dense_Dense5",
+                        "name": "dense_Dense11",
                         "trainable": true,
                         "batch_input_shape": [null, 14739],
                         "dtype": "float32"
@@ -40,14 +40,14 @@
                         "rate": 0.5,
                         "noise_shape": null,
                         "seed": null,
-                        "name": "dropout_Dropout3",
+                        "name": "dropout_Dropout6",
                         "trainable": true
                     }
                 },
                 {
                     "class_name": "Dense",
                     "config": {
-                        "units": 6,
+                        "units": 5,
                         "activation": "softmax",
                         "use_bias": false,
                         "kernel_initializer": {
@@ -68,7 +68,7 @@
                         "activity_regularizer": null,
                         "kernel_constraint": null,
                         "bias_constraint": null,
-                        "name": "dense_Dense6",
+                        "name": "dense_Dense12",
                         "trainable": true
                     }
                 }
@@ -82,18 +82,18 @@
             "paths": ["weights.bin"],
             "weights": [
                 {
-                    "name": "dense_Dense5/kernel",
+                    "name": "dense_Dense11/kernel",
                     "shape": [14739, 100],
                     "dtype": "float32"
                 },
                 {
-                    "name": "dense_Dense5/bias",
+                    "name": "dense_Dense11/bias",
                     "shape": [100],
                     "dtype": "float32"
                 },
                 {
-                    "name": "dense_Dense6/kernel",
-                    "shape": [100, 6],
+                    "name": "dense_Dense12/kernel",
+                    "shape": [100, 5],
                     "dtype": "float32"
                 }
             ]

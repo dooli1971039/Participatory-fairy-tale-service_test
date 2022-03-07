@@ -3,17 +3,10 @@
     "tmVersion": "0.8.6",
     "packageVersion": "0.8.6",
     "packageName": "@teachablemachine/pose",
-    "timeStamp": "2022-02-27T15:18:50.751Z",
+    "timeStamp": "2022-03-07T17:17:11.881Z",
     "userMetadata": {},
-    "modelName": "my-pose-model",
-    "labels": [
-        "RightLeg",
-        "LeftLeg",
-        "Stand",
-        "Stand2",
-        "FailRight",
-        "FailLeft"
-    ],
+    "modelName": "stretching_oneLeg",
+    "labels": ["Class 1", "Class 2", "Stand", "Stand2", "Class 7"],
     "modelSettings": {
         "posenet": {
             "architecture": "MobileNetV1",
