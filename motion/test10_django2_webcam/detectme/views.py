@@ -3,8 +3,9 @@ from django.shortcuts import render
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import cv2
-
+import threading
 from pathlib import Path
+
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -30,14 +31,25 @@ def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
 
 
-def gen():
-    capture = cv2.VideoCapture(0) #카메라 정보 받아옴
-    inputWidth=320;
-    inputHeight=240;
-    inputScale=1.0/255;
+class Openpose(object):
+    def __init__(self):
+        self.video = cv2.VideoCapture(0) #카메라 정보 받아옴
+        (self.grabbed, self.frame) = self.video.read()
+        threading.Thread(target=self.update, args=()).start()
+
+    def __del__(self):
+        self.video.release()
+
+    def update(self):
+        while True:
+            (self.grabbed, self.frame) = self.video.read()
     
-    while cv2.waitKey(1) <0:
-        _, frame = capture.read()
+    def get_frame(self):
+        _,frame = self.video.read()
+        inputWidth=320;
+        inputHeight=240;
+        inputScale=1.0/255;
+        
         frameWidth = frame.shape[1]
         frameHeight = frame.shape[0]
     
@@ -49,7 +61,7 @@ def gen():
         net.setInput(inpBlob)
 
         # 결과 받아오기
-        output = net.forward()
+        output = net.forward() #추론을 진행할때 이용하는 함수
         
         # 키포인트 검출시 이미지에 그려줌
         points = []
@@ -84,18 +96,23 @@ def gen():
             #print(partA," 와 ", partB, " 연결\n")
             if points[partA] and points[partB]:
                 cv2.line(frame, points[partA], points[partB], (0, 255, 0), 2)
+                
         
-        cv2.imshow("Output-Keypoints",frame)
-        
-        _,buffer=cv2.imencode(".jpg",frame)
-        frame=buffer.tobytes()
+        _, jpeg = cv2.imencode('.jpg', frame)
+        return jpeg.tobytes()
+            
+    
+
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
         yield(b'--frame\r\n'
-            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-        
+              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
 @gzip.gzip_page
 def detectme(request):
     try:
-        return StreamingHttpResponse(gen(), content_type="multipart/x-mixed-replace;boundary=frame")
+        return StreamingHttpResponse(gen(Openpose()), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
