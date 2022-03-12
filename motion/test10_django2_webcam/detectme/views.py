@@ -30,6 +30,26 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
 
+def check_O():
+    return "O"
+
+def is_divide(x11,y11,x12,y12,x21,y21,x22,y22):
+    f1= (x12-x11)*(y21-y11) - (y12-y11)*(x21-x11)
+    f2= (x12-x11)*(y22-y11) - (y12-y11)*(x22-x11)
+    if f1*f2 < 0 :
+      return True
+    else:
+      return False
+
+def is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
+    b1 = is_divide(x11,y11, x12,y12, x21,y21, x22,y22)
+    b2 = is_divide(x21,y21, x22,y22, x11,y11, x12,y12)
+    if b1 and b2:
+        return True
+    else:
+        return False
+
+
 
 class Openpose(object):
     def __init__(self):
@@ -84,6 +104,14 @@ class Openpose(object):
             else :
                 points.append(None)
 
+        if points[3] and points[4] and points[6] and points[7]:
+            x11,y11=points[3]
+            x12,y12=points[4]
+            x21,y21=points[6]
+            x22,y22=points[7]
+            
+            if is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
+                print("XXXXXXX") 
 
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
