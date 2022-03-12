@@ -30,9 +30,45 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
 
-def check_O():
-    return "O"
+count=0
 
+def check_HandsUp(points):
+    global count
+    if points[0] and points[1] and points[4] and points[7]: #머리, 오른쪽 손목, 왼쪽 손목
+        head_x,head_y=points[0]
+        neck_x,neck_y=points[1]
+        r_x,r_y=points[4]
+        l_x,l_y =points[7]
+        
+        if (head_y+neck_y)/2<=r_y and (head_y+neck_y)/2<=l_y:
+            print("Hands Up"+str(count))
+            count+=1
+
+def check_X(points):
+    global count
+    if points[3] and points[4] and points[6] and points[7]:
+            x11,y11=points[3]
+            x12,y12=points[4]
+            x21,y21=points[6]
+            x22,y22=points[7]
+            
+            if gradient(x11,y11,x12,y12,x21,y21,x22,y22)=="minus":
+                if (x12-x22)**2 <15:
+                    print("XXXXXXX"+str(count)) 
+                    count+=1
+                    
+def gradient(x1,y1,x2,y2,x3,y3,x4,y4):
+    try:
+        f1=(y1-y2)/(x1-x2)
+        f2=(y3-y4)/(x3-x4)
+        if f1*f2<0:
+            return "minus"
+        else:
+            return "plus"
+    except:  # This is bad! replace it with proper handling
+        return "None"
+    
+    
 def is_divide(x11,y11,x12,y12,x21,y21,x22,y22):
     f1= (x12-x11)*(y21-y11) - (y12-y11)*(x21-x11)
     f2= (x12-x11)*(y22-y11) - (y12-y11)*(x22-x11)
@@ -48,8 +84,6 @@ def is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
         return True
     else:
         return False
-
-
 
 class Openpose(object):
     def __init__(self):
@@ -103,15 +137,11 @@ class Openpose(object):
                 points.append((int(x), int(y)))
             else :
                 points.append(None)
-
-        if points[3] and points[4] and points[6] and points[7]:
-            x11,y11=points[3]
-            x12,y12=points[4]
-            x21,y21=points[6]
-            x22,y22=points[7]
-            
-            if is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
-                print("XXXXXXX") 
+                
+        #check_X(points)
+        check_HandsUp(points)
+        
+        
 
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
