@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from http.client import HTTPResponse
+from django.shortcuts import render,HttpResponse,redirect
 
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
@@ -6,6 +7,10 @@ import cv2
 import threading
 from pathlib import Path
 
+from imutils.video import VideoStream
+from imutils.video import FPS
+from torch import true_divide
+import time
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -26,12 +31,41 @@ weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
+def Template(article):
+    return f'''<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Title</title>
+    </head>
+    <body>
+        <h1>Video...</h1>
+
+        <table>
+            <tr>
+                <td>
+                    <img
+                        src="http://127.0.0.1:8000/detectme"
+                        style="width: 320px; height: 240px"
+                    />
+                </td>
+
+                <td>나의 비디오...</td>
+            </tr>
+            <h1>{article}</h1>
+        </table>
+    </body>
+</html>'''
+
 # Create your views here.
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
+    #return HttpResponse(Template(''))
 
-count=0
-
+#openCV의 좌표계는 좌측위가 (0,0)이다...
+#아래/오른쪽으로 갈수록 증가한다
 def check_HandsUp(points):
     global count
     if points[0] and points[1] and points[4] and points[7]: #머리, 오른쪽 손목, 왼쪽 손목
@@ -40,9 +74,12 @@ def check_HandsUp(points):
         r_x,r_y=points[4]
         l_x,l_y =points[7]
         
-        if (head_y+neck_y)/2<=r_y and (head_y+neck_y)/2<=l_y:
-            print("Hands Up"+str(count))
-            count+=1
+        #머리보다 양 손목의 위치가 높아야 한다.
+        #양 손목 중간에 머리가 위치해야 한다.
+        if l_x>head_x and head_x>r_x and head_y/2>=r_y and head_y/2>=l_y:  
+            return True
+        else:
+            return False
 
 def check_X(points):
     global count
@@ -67,8 +104,7 @@ def gradient(x1,y1,x2,y2,x3,y3,x4,y4):
             return "plus"
     except:  # This is bad! replace it with proper handling
         return "None"
-    
-    
+     
 def is_divide(x11,y11,x12,y12,x21,y21,x22,y22):
     f1= (x12-x11)*(y21-y11) - (y12-y11)*(x21-x11)
     f2= (x12-x11)*(y22-y11) - (y12-y11)*(x22-x11)
@@ -87,19 +123,23 @@ def is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
 
 class Openpose(object):
     def __init__(self):
-        self.video = cv2.VideoCapture(0) #카메라 정보 받아옴
-        (self.grabbed, self.frame) = self.video.read()
-        threading.Thread(target=self.update, args=()).start()
+        self.video=VideoStream(src=0).start()
+        #self.fps = FPS().start()
+        #self.video = cv2.VideoCapture(0) #카메라 정보 받아옴
+        #(self.grabbed, self.frame) = self.video.read()
+        #threading.Thread(target=self.update, args=()).start()
 
     def __del__(self):
-        self.video.release()
+        cv2.destroyAllWindows()
+        #self.video.release()
 
-    def update(self):
-        while True:
-            (self.grabbed, self.frame) = self.video.read()
+    # def update(self):
+    #     while True:
+    #         (self.grabbed, self.frame) = self.video.read()
     
     def get_frame(self):
-        _,frame = self.video.read()
+        #_,frame = self.video.read()
+        frame = self.video.read()
         inputWidth=320;
         inputHeight=240;
         inputScale=1.0/255;
@@ -108,8 +148,7 @@ class Openpose(object):
         frameHeight = frame.shape[0]
     
         inpBlob = cv2.dnn.blobFromImage(frame, inputScale, (inputWidth, inputHeight), (0, 0, 0), swapRB=False, crop=False)
-    
-        imgb=cv2.dnn.imagesFromBlob(inpBlob)
+        #imgb=cv2.dnn.imagesFromBlob(inpBlob)
         
         # network에 넣어주기
         net.setInput(inpBlob)
@@ -139,7 +178,8 @@ class Openpose(object):
                 points.append(None)
                 
         #check_X(points)
-        check_HandsUp(points)
+        if(check_HandsUp(points)):
+            print("Hands Up" + str(time.time()))
         
         
 
@@ -155,7 +195,7 @@ class Openpose(object):
             if points[partA] and points[partB]:
                 cv2.line(frame, points[partA], points[partB], (0, 255, 0), 2)
                 
-        
+        #self.fps.update()
         _, jpeg = cv2.imencode('.jpg', frame)
         return jpeg.tobytes()
             
