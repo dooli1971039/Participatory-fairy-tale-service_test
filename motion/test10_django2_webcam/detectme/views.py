@@ -8,9 +8,7 @@ import threading
 from pathlib import Path
 from httpx import head
 
-from imutils.video import VideoStream
-from imutils.video import FPS
-from torch import true_divide
+from imutils.video import VideoStream, FPS
 import time
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
@@ -61,7 +59,7 @@ def check_O(points):
         le_x,le_y=points[6]
         lw_x,lw_y=points[7]
         
-        #기본적으로 만세 조건을 만족시킬것
+        #기본적으로 만세 조건을 만족시킬것 chek_HandsUP()
         #양 손목이 팔꿈치보다 안쪽에 위치할 것
         #양 손목이 팔꿈치보다 위쪽에 위치할 것
         if check_HandsUp(points) and re_x<rw_x and le_x>lw_x and re_y>rw_y and le_y>lw_y:
@@ -99,33 +97,6 @@ def check_X(points):
                 else:
                     return False           
                    
-                    
-def gradient(x1,y1,x2,y2,x3,y3,x4,y4):
-    try:
-        f1=(y1-y2)/(x1-x2)
-        f2=(y3-y4)/(x3-x4)
-        if f1*f2<0:
-            return "minus"
-        else:
-            return "plus"
-    except:  # This is bad! replace it with proper handling
-        return "None"
-     
-def is_divide(x11,y11,x12,y12,x21,y21,x22,y22):
-    f1= (x12-x11)*(y21-y11) - (y12-y11)*(x21-x11)
-    f2= (x12-x11)*(y22-y11) - (y12-y11)*(x22-x11)
-    if f1*f2 < 0 :
-      return True
-    else:
-      return False
-
-def is_cross(x11,y11,x12,y12,x21,y21,x22,y22):
-    b1 = is_divide(x11,y11, x12,y12, x21,y21, x22,y22)
-    b2 = is_divide(x21,y21, x22,y22, x11,y11, x12,y12)
-    if b1 and b2:
-        return True
-    else:
-        return False
 
 class Openpose(object):
     def __init__(self):
