@@ -1,4 +1,5 @@
 from http.client import HTTPResponse
+from cv2 import VideoCapture
 from django.shortcuts import render,HttpResponse,redirect
 
 from django.views.decorators import gzip
@@ -26,7 +27,6 @@ POSE_PAIRS = [ ["Head", "Neck"], ["Neck", "RShoulder"], ["RShoulder", "RElbow"],
 BASE_DIR = Path(__file__).resolve().parent
 protoFile = str(BASE_DIR)+"/file/pose_deploy_linevec_faster_4_stages.prototxt"
 weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
-
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
@@ -98,18 +98,14 @@ def check_X(points):
 class Openpose(object):
     def __init__(self):
         self.video=VideoStream(src=0).start()
-        #self.fps = FPS().start()
-        #self.video = cv2.VideoCapture(0) #카메라 정보 받아옴
-        #(self.grabbed, self.frame) = self.video.read()
-        #threading.Thread(target=self.update, args=()).start()
+        self.status=2
+        self.keep_time=[0,0,0] #######################
+
 
     def __del__(self):
         cv2.destroyAllWindows()
         #self.video.release()
 
-    # def update(self):
-    #     while True:
-    #         (self.grabbed, self.frame) = self.video.read()
     
     def get_frame(self,pose_type):
         #_,frame = self.video.read()
@@ -157,6 +153,8 @@ class Openpose(object):
                 print("OOOO" + str(time.time()))
             elif check_X(points):
                 print("XXXX"+str(time.time()))
+            else:
+                print()
         
         #XHandsUp일때
         elif pose_type=="XHandsUp":       
@@ -164,6 +162,8 @@ class Openpose(object):
                 print("Hands Up" + str(time.time()))
             elif check_X(points):
                 print("XXXX"+str(time.time()))
+            else:
+                print()
         
         
 
