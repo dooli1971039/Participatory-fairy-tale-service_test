@@ -70,26 +70,34 @@ def check_O(points):
             return False
     
 def check_X(points):
-    #머리, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목, 몸통(가슴)
-    if points[0] and points[3] and points[4] and points[6] and points[7] and points[14]:
+    #머리, 오른쪽 어깨, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 어깨, 왼쪽 팔꿈치, 왼쪽 손목, 몸통(가슴)
+    if points[0] and points[2] and points[3] and points[4] and points[5] and points[6] and points[7] and points[14]:
         head_x,head_y=points[0]
+        rs_x,rs_y=points[2]
         re_x,re_y=points[3]
         rw_x,rw_y=points[4]
+        ls_x,ls_y=points[5]
         le_x,le_y=points[6]
         lw_x,lw_y=points[7]
         b_x,b_y=points[14]
         
-        if (b_y>le_y and b_y>re_y) and (le_y>lw_y and re_y >rw_y) and(lw_y>head_y and rw_y>head_y) and (re_x<b_x and b_x<le_x):
-            r_gradient=l_gradient=0
-            if rw_x-re_x !=0:
-                r_gradient= (rw_y-re_y)/(rw_x-re_x)
-            if lw_x-le_x !=0:
-                l_gradient= (lw_y-le_y)/(lw_x-le_x)
-                
-            if r_gradient<0 or l_gradient>0:
-                return True
-            else:
-                return False           
+        #몸에 점찍히는 부분보다 팔꿈치가 위쪽에 위치
+        #팔꿈치보다 손목이 위쪽에 위치
+        #손목보다 머리가 위쪽에 위치
+        #양 팔꿈치 사이에 몸이 위치
+        #어깨 안쪽으로 손목이 위치
+        if (b_y>le_y and b_y>re_y) and (le_y>lw_y and re_y >rw_y) and(lw_y>head_y and rw_y>head_y):
+            if (re_x<b_x and b_x<le_x) and (rs_x<rw_x and lw_x<ls_x):
+                r_gradient=l_gradient=0
+                if rw_x-re_x !=0:
+                    r_gradient= (rw_y-re_y)/(rw_x-re_x)
+                if lw_x-le_x !=0:
+                    l_gradient= (lw_y-le_y)/(lw_x-le_x)
+
+                if r_gradient<0 or l_gradient>0:
+                    return True
+                else:
+                    return False           
                    
                     
 def gradient(x1,y1,x2,y2,x3,y3,x4,y4):
