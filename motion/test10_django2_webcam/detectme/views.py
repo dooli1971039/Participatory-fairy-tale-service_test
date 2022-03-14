@@ -30,9 +30,6 @@ weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
-# Create your views here.
-def home(request):
-    return render(request,"home.html") #home.html을 호출해서 띄워준다.
 
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
@@ -153,13 +150,15 @@ class Openpose(object):
                 points.append((int(x), int(y)))
             else :
                 points.append(None)
-                
+        
+        #OX일때   
         if pose_type=="OX":
             if check_O(points):
                 print("OOOO" + str(time.time()))
             elif check_X(points):
                 print("XXXX"+str(time.time()))
         
+        #XHandsUp일때
         elif pose_type=="XHandsUp":       
             if check_HandsUp(points):
                 print("Hands Up" + str(time.time()))
@@ -192,9 +191,59 @@ def gen(camera,pose_type):
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @gzip.gzip_page
-def detectme(request):
+def detectme_OX(request):
+    try:
+        return StreamingHttpResponse(gen(Openpose(),"OX"), content_type="multipart/x-mixed-replace;boundary=frame")
+    except:  # This is bad! replace it with proper handling
+        print("에러입니다...")
+        pass
+    
+@gzip.gzip_page
+def detectme_XHandsUp(request):
     try:
         return StreamingHttpResponse(gen(Openpose(),"XHandsUp"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
+
+
+
+# Create your views here.
+def home(request):
+    return render(request,"home.html") #home.html을 호출해서 띄워준다.
+ 
+def HTMLTemplate(pose_type):  #id값이 없는 경우 None이 기본값
+    return f'''<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Title</title>
+    </head>
+    <body>
+        <h1>{pose_type}-Pose</h1>
+
+        <table>
+            <tr>
+                <td>
+                    <img
+                        src="http://127.0.0.1:8000/detectme_{pose_type}"
+                        style="width: 320px; height: 240px"
+                    />
+                </td>
+
+                <td><h2><a href="/">돌아가기</a></h2></td>
+            </tr>
+        </table>
+    </body>
+</html>
+'''
+
+def OX(request):
+    pose_type="OX"
+    return HttpResponse(HTMLTemplate(pose_type))
+
+def XHandsUp(request):
+    pose_type="XHandsUp"
+    return HttpResponse(HTMLTemplate(pose_type))
