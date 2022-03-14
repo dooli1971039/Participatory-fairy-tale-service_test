@@ -6,6 +6,7 @@ from django.http import StreamingHttpResponse
 import cv2
 import threading
 from pathlib import Path
+from httpx import head
 
 from imutils.video import VideoStream
 from imutils.video import FPS
@@ -31,56 +32,43 @@ weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
-def Template(article):
-    return f'''<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Title</title>
-    </head>
-    <body>
-        <h1>Video...</h1>
-
-        <table>
-            <tr>
-                <td>
-                    <img
-                        src="http://127.0.0.1:8000/detectme"
-                        style="width: 320px; height: 240px"
-                    />
-                </td>
-
-                <td>나의 비디오...</td>
-            </tr>
-            <h1>{article}</h1>
-        </table>
-    </body>
-</html>'''
-
 # Create your views here.
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
-    #return HttpResponse(Template(''))
 
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
 def check_HandsUp(points):
-    global count
-    if points[0] and points[1] and points[4] and points[7]: #머리, 오른쪽 손목, 왼쪽 손목
+     #머리, 오른쪽 손목, 왼쪽 손목
+    if points[0] and points[4] and points[7]:
         head_x,head_y=points[0]
-        neck_x,neck_y=points[1]
         r_x,r_y=points[4]
         l_x,l_y =points[7]
         
         #머리보다 양 손목의 위치가 높아야 한다.
         #양 손목 중간에 머리가 위치해야 한다.
-        if l_x>head_x and head_x>r_x and head_y/2>=r_y and head_y/2>=l_y:  
+        if l_x>head_x and head_x>r_x and head_y>=r_y and head_y>=l_y:  
             return True
         else:
             return False
 
+def check_O(points):
+    #머리, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목
+    if points[0] and points[3] and points[4] and points[6] and points[7]:
+        head_x,head_y=points[0]
+        re_x,re_y=points[3]
+        rw_x,rw_y=points[4]
+        le_x,le_y=points[6]
+        lw_x,lw_y=points[7]
+        
+        if check_HandsUp(points): #기본적으로 만세 조건을 만족시킬것
+            #양 손목이 팔꿈치보다 안쪽에 위치할 것
+            #양 손목이 팔꿈치보다 위쪽에 위치할 것
+            if re_x<rw_x and le_x>lw_x and re_y>rw_y and le_y>lw_y:
+                return True
+        else:
+            return False
+    
 def check_X(points):
     global count
     if points[3] and points[4] and points[6] and points[7]:
@@ -177,10 +165,12 @@ class Openpose(object):
             else :
                 points.append(None)
                 
-        #check_X(points)
+        
         if(check_HandsUp(points)):
             print("Hands Up" + str(time.time()))
         
+        if(check_O(points)):
+            print("OOOO" + str(time.time()))
         
 
 
