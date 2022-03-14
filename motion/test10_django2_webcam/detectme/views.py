@@ -79,7 +79,7 @@ def check_X(points):
         lw_x,lw_y=points[7]
         b_x,b_y=points[14]
         
-        #몸에 점찍히는 부분보다 팔꿈치가 위쪽에 위치
+        #몸(가슴)에 점찍히는 부분보다 팔꿈치가 위쪽에 위치 (가슴 말고 골반으로 해야하나...)
         #팔꿈치보다 손목이 위쪽에 위치
         #손목보다 머리가 위쪽에 위치
         #양 팔꿈치 사이에 몸이 위치
@@ -114,7 +114,7 @@ class Openpose(object):
     #     while True:
     #         (self.grabbed, self.frame) = self.video.read()
     
-    def get_frame(self):
+    def get_frame(self,pose_type):
         #_,frame = self.video.read()
         frame = self.video.read()
         inputWidth=320;
@@ -154,15 +154,19 @@ class Openpose(object):
             else :
                 points.append(None)
                 
+        if pose_type=="OX":
+            if check_O(points):
+                print("OOOO" + str(time.time()))
+            elif check_X(points):
+                print("XXXX"+str(time.time()))
         
-        if(check_HandsUp(points)):
-            print("Hands Up" + str(time.time()))
+        elif pose_type=="XHandsUp":       
+            if check_HandsUp(points):
+                print("Hands Up" + str(time.time()))
+            elif check_X(points):
+                print("XXXX"+str(time.time()))
         
-        if(check_O(points)):
-            print("OOOO" + str(time.time()))
         
-        if(check_X(points)):
-            print("XXXX"+str(time.time()))
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
         for pair in POSE_PAIRS:
@@ -181,16 +185,16 @@ class Openpose(object):
             
     
 
-def gen(camera):
+def gen(camera,pose_type):
     while True:
-        frame = camera.get_frame()
+        frame = camera.get_frame(pose_type)
         yield(b'--frame\r\n'
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @gzip.gzip_page
 def detectme(request):
     try:
-        return StreamingHttpResponse(gen(Openpose()), content_type="multipart/x-mixed-replace;boundary=frame")
+        return StreamingHttpResponse(gen(Openpose(),"XHandsUp"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
