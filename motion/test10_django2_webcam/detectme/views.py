@@ -61,26 +61,36 @@ def check_O(points):
         le_x,le_y=points[6]
         lw_x,lw_y=points[7]
         
-        if check_HandsUp(points): #기본적으로 만세 조건을 만족시킬것
-            #양 손목이 팔꿈치보다 안쪽에 위치할 것
-            #양 손목이 팔꿈치보다 위쪽에 위치할 것
-            if re_x<rw_x and le_x>lw_x and re_y>rw_y and le_y>lw_y:
-                return True
+        #기본적으로 만세 조건을 만족시킬것
+        #양 손목이 팔꿈치보다 안쪽에 위치할 것
+        #양 손목이 팔꿈치보다 위쪽에 위치할 것
+        if check_HandsUp(points) and re_x<rw_x and le_x>lw_x and re_y>rw_y and le_y>lw_y:
+            return True
         else:
             return False
     
 def check_X(points):
-    global count
-    if points[3] and points[4] and points[6] and points[7]:
-            x11,y11=points[3]
-            x12,y12=points[4]
-            x21,y21=points[6]
-            x22,y22=points[7]
-            
-            if gradient(x11,y11,x12,y12,x21,y21,x22,y22)=="minus":
-                if (x12-x22)**2 <15:
-                    print("XXXXXXX"+str(count)) 
-                    count+=1
+    #머리, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목, 몸통(가슴)
+    if points[0] and points[3] and points[4] and points[6] and points[7] and points[14]:
+        head_x,head_y=points[0]
+        re_x,re_y=points[3]
+        rw_x,rw_y=points[4]
+        le_x,le_y=points[6]
+        lw_x,lw_y=points[7]
+        b_x,b_y=points[14]
+        
+        if (b_y>le_y and b_y>re_y) and (le_y>lw_y and re_y >rw_y) and(lw_y>head_y and rw_y>head_y) and (re_x<b_x and b_x<le_x):
+            r_gradient=l_gradient=0
+            if rw_x-re_x !=0:
+                r_gradient= (rw_y-re_y)/(rw_x-re_x)
+            if lw_x-le_x !=0:
+                l_gradient= (lw_y-le_y)/(lw_x-le_x)
+                
+            if r_gradient<0 or l_gradient>0:
+                return True
+            else:
+                return False           
+                   
                     
 def gradient(x1,y1,x2,y2,x3,y3,x4,y4):
     try:
@@ -172,7 +182,8 @@ class Openpose(object):
         if(check_O(points)):
             print("OOOO" + str(time.time()))
         
-
+        if(check_X(points)):
+            print("XXXX"+str(time.time()))
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
         for pair in POSE_PAIRS:
