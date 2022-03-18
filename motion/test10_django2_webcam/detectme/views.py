@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from httpx import head
 
-from imutils.video import VideoStream, FPS
+#from imutils.video import VideoStream, FPS
 import time
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
@@ -94,10 +94,9 @@ def check_X(points):
                 else:
                     return False           
 
-def show_result(keep_time,pose_type):
+def show_result(keep_time,pose_type): #END / Aginn
     ##결과를 보여주고
     ##소리도 재생시켜야 한다.
-    ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
     if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]: #status 2
         print("자세를 취해주세요.")
         return "Again"
@@ -116,17 +115,18 @@ def show_result(keep_time,pose_type):
         return "END"
             
           
-check=0;
-def count_time(status,keep_time,elapsed,pose_type):
+check=0
+elapsed=0
+def count_time(status,keep_time,elapsed,pose_type): #1초에 3번 불리던데...
     global check
-    if check==3:
-        print(elapsed,"####") #대충 1초에 3번 정도 불리는 듯
+    if check==3: #함수가 1초에 3번 불리니까 
         check=0
+        elapsed+=1 #1초
     else:
         check+=1
         
-    if elapsed>=8:
-        result=show_result(keep_time,pose_type)
+    if elapsed>=10:
+        result=show_result(keep_time,pose_type)  #END / Again
         return result
     
     elif keep_time[status]==0:
@@ -143,6 +143,7 @@ def count_time(status,keep_time,elapsed,pose_type):
 class Openpose(object):
     def __init__(self):
         self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        self.start=time.time()
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
 
@@ -151,7 +152,7 @@ class Openpose(object):
         cv2.destroyAllWindows()
 
     
-    def get_frame(self,start,pose_type,status,keep_time):
+    def get_frame(self,pose_type,start,status,keep_time):
         _,frame = self.video.read()
         #frame = self.video.read()
         inputWidth=320;
@@ -210,11 +211,11 @@ class Openpose(object):
                 status=2
         
         #시간   
-        elapsed=time.time()-start
-        if elapsed>3 :
-            check_end=count_time(status,keep_time,elapsed,pose_type)
-            if check_end=="END":
-                return "END"
+        global elapsed
+        #elapsed=time.time()-start
+        check_end=count_time(status,keep_time,elapsed,pose_type)
+        if check_end=="END":
+            return "END"
                 
         
 
@@ -241,9 +242,9 @@ def gen(camera,pose_type):
     start=time.time() #시간
     #여기에 소리도 추가하자
     while True:
-        frame = camera.get_frame(start,pose_type,status,keep_time)
+        frame = camera.get_frame(pose_type,start,status,keep_time)
         if frame=="END":
-            del camera
+            del camera  #카메라 끄기
             break
         else:
             yield(b'--frame\r\n'
