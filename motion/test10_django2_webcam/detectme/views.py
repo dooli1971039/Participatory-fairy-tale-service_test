@@ -106,13 +106,16 @@ def show_result(status,pose_type): #END / Aginn
     else: #status 0
         if pose_type=="OX":
             print("O를 선택하셨습니다.")
+            return "END"
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
-            
-        return "END"
+            return "END"
       
-
-def count_time(status,keep_time,pose_type): 
+status=2
+keep_time=[0,0,-5]
+    
+def count_time(pose_type): 
+    global status,keep_time
     if keep_time[status]==0:
         #다른 모션에서 바뀌어 들어옴
         keep_time[0]=keep_time[1]=keep_time[2]=0
@@ -129,8 +132,8 @@ def count_time(status,keep_time,pose_type):
     else:
         keep_time[status]+=1
 
-    #print(status,"##",keep_time[0],keep_time[1],keep_time[2])
-    threading.Timer(1,count_time,(status,keep_time,pose_type)).start() #1초마다 실행
+    print(status,"##",keep_time[0],keep_time[1],keep_time[2])
+    threading.Timer(1,count_time,(pose_type,)).start()
    
     
 class Openpose(object):
@@ -144,7 +147,8 @@ class Openpose(object):
         cv2.destroyAllWindows()
 
     
-    def get_frame(self,pose_type,status,keep_time):
+    def get_frame(self,pose_type):
+        global status
         _,frame = self.video.read()
         #frame = self.video.read()
         inputWidth=320;
@@ -203,9 +207,9 @@ class Openpose(object):
                 status=2
         
         #시간   
-        check_end=count_time(status,keep_time,pose_type)
-        if check_end=="END":
-            return "END"                
+        # check_end=count_time(status,keep_time,pose_type)
+        # if check_end=="END":
+        #     return "END"                
         
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
@@ -226,12 +230,14 @@ class Openpose(object):
     
 
 def gen(camera,pose_type):
-    status=2
-    keep_time=[0,0,0]
+    global status,keep_time
     #여기에 소리도 추가하자
+    check_end=count_time(pose_type)
+    
     while True:
-        frame = camera.get_frame(pose_type,status,keep_time)
-        if frame=="END":
+        frame = camera.get_frame(pose_type)
+        
+        if check_end=="END":
             del camera  #카메라 끄기
             break
         else:
