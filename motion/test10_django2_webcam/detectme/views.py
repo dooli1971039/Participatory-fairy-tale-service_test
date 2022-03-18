@@ -98,35 +98,52 @@ def show_result(keep_time,pose_type):
     ##결과를 보여주고
     ##소리도 재생시켜야 한다.
     ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
-    if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]:
+    if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]: #status 2
         print("자세를 취해주세요.")
-    elif keep_time[1]>keep_time[0]:
+        return "Again"
+        
+    elif keep_time[1]>keep_time[0]: #status 1
         print("X를 선택하셨습니다.")
-    else: 
+        return "END"
+        
+    else: #status 0
         if pose_type=="OX":
             print("O를 선택하셨습니다.")
+            
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
+            
+        return "END"
+            
           
-               
+check=0;
 def count_time(status,keep_time,elapsed,pose_type):
-    print(int(elapsed),"#####")  #대충 1초에 3번 정도 불리는 듯
-    if elapsed>=15:
-        show_result(keep_time,pose_type)
+    global check
+    if check==3:
+        print(elapsed,"####") #대충 1초에 3번 정도 불리는 듯
+        check=0
+    else:
+        check+=1
+        
+    if elapsed>=8:
+        result=show_result(keep_time,pose_type)
+        return result
     
     elif keep_time[status]==0:
         #다른 모션에서 바뀌어 들어옴
         keep_time[0]=keep_time[1]=keep_time[2]=0
         keep_time[status]+=1
+        return "ing"
     
     elif keep_time[status]!=0:
         keep_time[status]+=1
+        return "ing"
    
     
 class Openpose(object):
     def __init__(self):
         self.video=VideoStream(src=0).start()
-
+        #self.fps = FPS().start()
 
     def __del__(self):
         cv2.destroyAllWindows()
@@ -176,10 +193,8 @@ class Openpose(object):
         #OX일때   
         if pose_type=="OX":
             if check_O(points):
-                #print("OOOO" + str(time.time()))
                 status=0
             elif check_X(points):
-                #print("XXXX"+str(time.time()))
                 status=1
             else:
                 status=2
@@ -187,19 +202,19 @@ class Openpose(object):
         #XHandsUp일때   
         elif pose_type=="XHandsUp":       
             if check_HandsUp(points):
-                #print("Hands Up" + str(time.time()))
                 status=0
             elif check_X(points):
-                #print("XXXX"+str(time.time()))
                 status=1
             else:
                 status=2
         
         #시간   
         elapsed=time.time()-start
-        if(elapsed>5):
-            count_time(status,keep_time,elapsed,pose_type)
-
+        if elapsed>3 :
+            check_end=count_time(status,keep_time,elapsed,pose_type)
+            if check_end=="END":
+                return "END"
+                
         
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
@@ -223,10 +238,15 @@ def gen(camera,pose_type):
     status=2
     keep_time=[0,0,0]
     start=time.time() #시간
+    #여기에 소리도 추가하자
     while True:
         frame = camera.get_frame(start,pose_type,status,keep_time)
-        yield(b'--frame\r\n'
-              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        if frame=="END":
+            del camera
+            break
+        else:
+            yield(b'--frame\r\n'
+                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @gzip.gzip_page
 def detectme_OX(request):
@@ -250,7 +270,7 @@ def detectme_XHandsUp(request):
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
  
-def HTMLTemplate(pose_type):  #id값이 없는 경우 None이 기본값
+def HTMLTemplate(pose_type): 
     return f'''<!DOCTYPE html>
 <html lang="en">
     <head>
