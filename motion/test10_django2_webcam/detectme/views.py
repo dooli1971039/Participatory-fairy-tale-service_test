@@ -93,13 +93,39 @@ def check_X(points):
                     return True
                 else:
                     return False           
-                   
 
+def show_result(keep_time,pose_type):
+    ##결과를 보여주고
+    ##소리도 재생시켜야 한다.
+    ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
+    if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]:
+        print("자세를 취해주세요.")
+    elif keep_time[1]>keep_time[0]:
+        print("X를 선택하셨습니다.")
+    else: 
+        if pose_type=="OX":
+            print("O를 선택하셨습니다.")
+        elif pose_type=="XHandsUp":
+            print("만세를 선택하셨습니다.")
+          
+               
+def count_time(status,keep_time,elapsed,pose_type):
+    print(int(elapsed),"#####")  #대충 1초에 3번 정도 불리는 듯
+    if elapsed>=15:
+        show_result(keep_time,pose_type)
+    
+    elif keep_time[status]==0:
+        #다른 모션에서 바뀌어 들어옴
+        keep_time[0]=keep_time[1]=keep_time[2]=0
+        keep_time[status]+=1
+    
+    elif keep_time[status]!=0:
+        keep_time[status]+=1
+   
+    
 class Openpose(object):
     def __init__(self):
         self.video=VideoStream(src=0).start()
-        self.status=2
-        self.keep_time=[0,0,0] #######################
 
 
     def __del__(self):
@@ -107,7 +133,7 @@ class Openpose(object):
         #self.video.release()
 
     
-    def get_frame(self,pose_type):
+    def get_frame(self,start,pose_type,status,keep_time):
         #_,frame = self.video.read()
         frame = self.video.read()
         inputWidth=320;
@@ -146,25 +172,34 @@ class Openpose(object):
                 points.append((int(x), int(y)))
             else :
                 points.append(None)
-        
+             
         #OX일때   
         if pose_type=="OX":
             if check_O(points):
-                print("OOOO" + str(time.time()))
+                #print("OOOO" + str(time.time()))
+                status=0
             elif check_X(points):
-                print("XXXX"+str(time.time()))
+                #print("XXXX"+str(time.time()))
+                status=1
             else:
-                print()
+                status=2
         
-        #XHandsUp일때
+        #XHandsUp일때   
         elif pose_type=="XHandsUp":       
             if check_HandsUp(points):
-                print("Hands Up" + str(time.time()))
+                #print("Hands Up" + str(time.time()))
+                status=0
             elif check_X(points):
-                print("XXXX"+str(time.time()))
+                #print("XXXX"+str(time.time()))
+                status=1
             else:
-                print()
+                status=2
         
+        #시간   
+        elapsed=time.time()-start
+        if(elapsed>5):
+            count_time(status,keep_time,elapsed,pose_type)
+
         
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
@@ -185,8 +220,11 @@ class Openpose(object):
     
 
 def gen(camera,pose_type):
+    status=2
+    keep_time=[0,0,0]
+    start=time.time() #시간
     while True:
-        frame = camera.get_frame(pose_type)
+        frame = camera.get_frame(start,pose_type,status,keep_time)
         yield(b'--frame\r\n'
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
