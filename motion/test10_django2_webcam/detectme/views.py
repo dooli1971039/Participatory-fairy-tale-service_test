@@ -94,15 +94,15 @@ def check_X(points):
                 else:
                     return False           
 
-def show_result(keep_time,pose_type):
+def show_result(pose_type,status): #END/Again
     ##결과를 보여주고
     ##소리도 재생시켜야 한다.
     ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
-    if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]: #status 2
+    if status==2: #status 2
         print("자세를 취해주세요.")
         return "Again"
         
-    elif keep_time[1]>keep_time[0]: #status 1
+    elif status==1: #status 1
         print("X를 선택하셨습니다.")
         return "END"
         
@@ -115,34 +115,40 @@ def show_result(keep_time,pose_type):
             
         return "END"
             
-          
+
 check=0;
-def count_time(status,keep_time,elapsed,pose_type):
+def count_time(status,keep_time,pose_type):
+    #대충 1초에 3번 정도 불리는 듯
     global check
+    #print(elapsed,"####") 
     if check==3:
-        print(elapsed,"####") #대충 1초에 3번 정도 불리는 듯
+        if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
+            result=show_result(pose_type,status) #END / Again
+            if result=="END":
+                return result
+            elif result=="Again":
+                 keep_time[0]=keep_time[1]=keep_time[2]=0 #시간 초기화
+        
+        elif keep_time[status]==0:
+            #다른 모션에서 바뀌어 들어옴
+            keep_time[0]=keep_time[1]=keep_time[2]=0
+            keep_time[status]+=1
+
+    
+        elif keep_time[status]!=0:
+            keep_time[status]+=1
+        
+        
         check=0
     else:
         check+=1
         
-    if elapsed>=8:
-        result=show_result(keep_time,pose_type)
-        return result
-    
-    elif keep_time[status]==0:
-        #다른 모션에서 바뀌어 들어옴
-        keep_time[0]=keep_time[1]=keep_time[2]=0
-        keep_time[status]+=1
-        return "ing"
-    
-    elif keep_time[status]!=0:
-        keep_time[status]+=1
-        return "ing"
-   
+
     
 class Openpose(object):
     def __init__(self):
         self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
 
@@ -151,7 +157,7 @@ class Openpose(object):
         cv2.destroyAllWindows()
 
     
-    def get_frame(self,start,pose_type,status,keep_time):
+    def get_frame(self,pose_type,status,keep_time):
         _,frame = self.video.read()
         #frame = self.video.read()
         inputWidth=320;
@@ -210,11 +216,11 @@ class Openpose(object):
                 status=2
         
         #시간   
-        elapsed=time.time()-start
-        if elapsed>3 :
-            check_end=count_time(status,keep_time,elapsed,pose_type)
-            if check_end=="END":
-                return "END"
+        # elapsed=time.time()-self.start
+
+        check_end=count_time(status,keep_time,pose_type)
+        if check_end=="END":
+            return "END"
                 
         
 
@@ -238,10 +244,9 @@ class Openpose(object):
 def gen(camera,pose_type):
     status=2
     keep_time=[0,0,0]
-    start=time.time() #시간
     #여기에 소리도 추가하자
     while True:
-        frame = camera.get_frame(start,pose_type,status,keep_time)
+        frame = camera.get_frame(pose_type,status,keep_time)
         if frame=="END":
             del camera
             break
