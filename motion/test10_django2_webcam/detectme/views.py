@@ -142,17 +142,18 @@ def count_time(status,keep_time,elapsed,pose_type):
     
 class Openpose(object):
     def __init__(self):
-        self.video=VideoStream(src=0).start()
+        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
 
     def __del__(self):
+        self.video.release()
         cv2.destroyAllWindows()
-        #self.video.release()
 
     
     def get_frame(self,start,pose_type,status,keep_time):
-        #_,frame = self.video.read()
-        frame = self.video.read()
+        _,frame = self.video.read()
+        #frame = self.video.read()
         inputWidth=320;
         inputHeight=240;
         inputScale=1.0/255;
