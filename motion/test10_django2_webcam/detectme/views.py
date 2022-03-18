@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from httpx import head
 
-#from imutils.video import VideoStream, FPS
+from imutils.video import VideoStream, FPS
 import time
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
@@ -29,6 +29,7 @@ protoFile = str(BASE_DIR)+"/file/pose_deploy_linevec_faster_4_stages.prototxt"
 weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
+
 
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
@@ -93,47 +94,50 @@ def check_X(points):
                 else:
                     return False           
 
-def show_result(status,pose_type): #END / Aginn
+def show_result(keep_time,pose_type):
+    ##결과를 보여주고
     ##소리도 재생시켜야 한다.
-    if status==2: #status 2
+    ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
+    if keep_time[2]>keep_time[0] and keep_time[2]>keep_time[1]: #status 2
         print("자세를 취해주세요.")
         return "Again"
         
-    elif status==1: #status 1
+    elif keep_time[1]>keep_time[0]: #status 1
         print("X를 선택하셨습니다.")
         return "END"
         
     else: #status 0
         if pose_type=="OX":
             print("O를 선택하셨습니다.")
-            return "END"
+            
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
-            return "END"
-      
-status=2
-keep_time=[0,0,-5]
+            
+        return "END"
+            
+          
+check=0;
+def count_time(status,keep_time,elapsed,pose_type):
+    global check
+    if check==3:
+        print(elapsed,"####") #대충 1초에 3번 정도 불리는 듯
+        check=0
+    else:
+        check+=1
+        
+    if elapsed>=8:
+        result=show_result(keep_time,pose_type)
+        return result
     
-def count_time(pose_type): 
-    global status,keep_time
-    if keep_time[status]==0:
+    elif keep_time[status]==0:
         #다른 모션에서 바뀌어 들어옴
         keep_time[0]=keep_time[1]=keep_time[2]=0
         keep_time[status]+=1
-
-    elif keep_time[status]==5: #종료
-            result=show_result(status,pose_type)  #END / Again
-            
-            if result=="END":
-                return result
-            elif result=="Again":
-                keep_time[0]=keep_time[1]=keep_time[2]=0
-                
-    else:
+        return "ing"
+    
+    elif keep_time[status]!=0:
         keep_time[status]+=1
-
-    print(status,"##",keep_time[0],keep_time[1],keep_time[2])
-    threading.Timer(1,count_time,(pose_type,)).start()
+        return "ing"
    
     
 class Openpose(object):
@@ -147,8 +151,7 @@ class Openpose(object):
         cv2.destroyAllWindows()
 
     
-    def get_frame(self,pose_type):
-        global status
+    def get_frame(self,start,pose_type,status,keep_time):
         _,frame = self.video.read()
         #frame = self.video.read()
         inputWidth=320;
@@ -207,9 +210,12 @@ class Openpose(object):
                 status=2
         
         #시간   
-        # check_end=count_time(status,keep_time,pose_type)
-        # if check_end=="END":
-        #     return "END"                
+        elapsed=time.time()-start
+        if elapsed>3 :
+            check_end=count_time(status,keep_time,elapsed,pose_type)
+            if check_end=="END":
+                return "END"
+                
         
 
         # 각 POSE_PAIRS별로 선 그어줌 (머리 - 목, 목 - 왼쪽어깨, ...)
@@ -230,19 +236,19 @@ class Openpose(object):
     
 
 def gen(camera,pose_type):
-    global status,keep_time
+    status=2
+    keep_time=[0,0,0]
+    start=time.time() #시간
     #여기에 소리도 추가하자
-    check_end=count_time(pose_type)
-    
     while True:
-        frame = camera.get_frame(pose_type)
-        
-        if check_end=="END":
-            del camera  #카메라 끄기
+        frame = camera.get_frame(start,pose_type,status,keep_time)
+        if frame=="END":
+            del camera
             break
         else:
             yield(b'--frame\r\n'
                  b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
 
 @gzip.gzip_page
 def detectme_OX(request):
@@ -277,7 +283,6 @@ def HTMLTemplate(pose_type):
     </head>
     <body>
         <h1>{pose_type}-Pose</h1>
-
         <table>
             <tr>
                 <td>
@@ -286,7 +291,6 @@ def HTMLTemplate(pose_type):
                         style="width: 320px; height: 240px"
                     />
                 </td>
-
                 <td><h2><a href="/">돌아가기</a></h2></td>
             </tr>
         </table>
