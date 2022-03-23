@@ -1,16 +1,9 @@
-from http.client import HTTPResponse
-from cv2 import VideoCapture
 from django.shortcuts import render,HttpResponse,redirect
-
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import cv2
-import threading
 from pathlib import Path
-from httpx import head
 
-from imutils.video import VideoStream, FPS
-import time
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
