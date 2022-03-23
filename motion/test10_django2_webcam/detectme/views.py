@@ -39,11 +39,13 @@ def check_HandsUp(points):
             return True
         else:
             return False
+        
+    else:
+        return False
 
 def check_O(points):
-    #머리, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목
-    if points[0] and points[3] and points[4] and points[6] and points[7]:
-        head_x,head_y=points[0]
+    #오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목
+    if points[3] and points[4] and points[6] and points[7]:
         re_x,re_y=points[3]
         rw_x,rw_y=points[4]
         le_x,le_y=points[6]
@@ -56,6 +58,9 @@ def check_O(points):
             return True
         else:
             return False
+        
+    else:
+        return False
     
 def check_X(points):
     #머리, 오른쪽 어깨, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 어깨, 왼쪽 팔꿈치, 왼쪽 손목, 몸통(가슴)
@@ -85,17 +90,36 @@ def check_X(points):
                 if r_gradient<0 or l_gradient>0:
                     return True
                 else:
-                    return False           
+                    return False        
+    else:
+        return False   
 
 def check_Stretching(points):
-    #기본적으로 O 조건을 만족시킬 것 check_O()
-    if points[0]:
-        head_x,head_y=points[0];
+    #오른쪽 골반, 오른쪽 무릎, 오른쪽 발목,  왼쪽 골반, 왼쪽 무릎, 왼쪽 발목
+    if points[8] and points[9] and points[10] and points[11] and points[12] and points[13]:
+        rh_x,rh_y=points[8]
+        rk_x,rk_y=points[9]
+        ra_x,ra_y=points[10]
+        lh_x,lh_y=points[11]
+        lk_x,lk_y=points[12]
+        la_x,la_y=points[13]
+        
+        #기본적으로 O 조건을 만족시킬 것 check_O()
+        if check_O(points):
+            #오른쪽을 구부림
+            if rk_x<rh_x and rk_x<ra_x and ra_y<la_y:
+                return True
+            #왼쪽을 구부림
+            elif lk_x>lh_x and lk_x>la_x and la_y<ra_y:
+                return True
+        else:
+            return False
+    
+    else:
+        return False
 
 def show_result(pose_type,status): #END/Again
-    ##결과를 보여주고
     ##소리도 재생시켜야 한다.
-    ##그리고 끝낸다.(여기서 제발 카메라 좀 꺼보자ㅠㅠㅠ)
     if status==2: #status 2
         print("자세를 취해주세요.")
         return "Again"
@@ -110,6 +134,9 @@ def show_result(pose_type,status): #END/Again
             
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
+        
+        elif pose_type=="Stretching":
+            print("자세유지에 성공하셨습니다.")
             
         return "END"
             
