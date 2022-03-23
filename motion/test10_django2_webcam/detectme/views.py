@@ -87,6 +87,11 @@ def check_X(points):
                 else:
                     return False           
 
+def check_Stretching(points):
+    #기본적으로 O 조건을 만족시킬 것 check_O()
+    if points[0]:
+        head_x,head_y=points[0];
+
 def show_result(pose_type,status): #END/Again
     ##결과를 보여주고
     ##소리도 재생시켜야 한다.
@@ -207,11 +212,18 @@ class Openpose(object):
                 status=1
             else:
                 status=2
+                
+        #Stretching일때   
+        elif pose_type=="Stretching":       
+            if check_Stretching(points):
+                status=0
+            else:
+                status=2
         
         #시간   
         # elapsed=time.time()-self.start
 
-        check_end=count_time(status,keep_time,pose_type)
+        check_end=count_time(status,keep_time,pose_type)  #스트레칭일때는 다르게 하자. 조건문 추가
         if check_end=="END":
             return "END"
                 
@@ -263,6 +275,14 @@ def detectme_XHandsUp(request):
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
+    
+@gzip.gzip_page
+def detectme_Stretching(request):
+    try:
+        return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
+    except:  # This is bad! replace it with proper handling
+        print("에러입니다...")
+        pass
 
 
 
@@ -304,6 +324,6 @@ def XHandsUp(request):
     pose_type="XHandsUp"
     return HttpResponse(HTMLTemplate(pose_type))
 
-def Stretching(request):
+def Stretching(request): #url 추가하고 pose 추가하고 posetype 추가하기
     pose_type="Stretching"
     return HttpResponse(HTMLTemplate(pose_type))
