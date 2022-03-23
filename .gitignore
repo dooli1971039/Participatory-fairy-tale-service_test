@@ -9,3 +9,5 @@ motion/test7/file/pose_iter_160000.caffemodel
 motion/test10_django2_webcam/detectme/file
 motion/test11_django2_webcam_origin/detectme/file
 yoonjiy
+
+.DS_Store
