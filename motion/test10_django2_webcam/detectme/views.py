@@ -303,3 +303,7 @@ def OX(request):
 def XHandsUp(request):
     pose_type="XHandsUp"
     return HttpResponse(HTMLTemplate(pose_type))
+
+def Stretching(request):
+    pose_type="Stretching"
+    return HttpResponse(HTMLTemplate(pose_type))
