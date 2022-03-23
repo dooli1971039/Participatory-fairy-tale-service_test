@@ -3,7 +3,7 @@ from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import cv2
 from pathlib import Path
-
+import playsound
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -20,6 +20,7 @@ POSE_PAIRS = [ ["Head", "Neck"], ["Neck", "RShoulder"], ["RShoulder", "RElbow"],
 BASE_DIR = Path(__file__).resolve().parent
 protoFile = str(BASE_DIR)+"/file/pose_deploy_linevec_faster_4_stages.prototxt"
 weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
+audioFile=str(BASE_DIR)+"/audio/"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
@@ -121,22 +122,31 @@ def check_Stretching(points):
 def show_result(pose_type,status): #END/Again
     ##소리도 재생시켜야 한다.
     if status==2: #status 2
-        print("자세를 취해주세요.")
-        return "Again"
+        if pose_type=="Stretching":
+            print("자세 유지에 실패하셨습니다.") 
+            playsound.playsound(audioFile+"Fail.mp3")
+            return "END"
+        else:
+            print("자세를 취해주세요.")  #mp3 추가
+            return "Again"
         
     elif status==1: #status 1
         print("X를 선택하셨습니다.")
+        playsound.playsound(audioFile+"X_choose.mp3")
         return "END"
         
     else: #status 0
         if pose_type=="OX":
             print("O를 선택하셨습니다.")
+            playsound.playsound(audioFile+"O_choose.mp3")
             
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
+            playsound.playsound(audioFile+"HandsUp_choose.mp3")
         
         elif pose_type=="Stretching":
-            print("자세유지에 성공하셨습니다.\n#####################")
+            print("자세유지에 성공하셨습니다.")
+            playsound.playsound(audioFile+"OK.mp3")
             
         return "END"
             
@@ -173,6 +183,7 @@ def count_time(status,keep_time,pose_type):
 class Openpose(object):
     def __init__(self):
         self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        #playsound.playsound(audioFile+"motion.mp3")
         #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
@@ -277,6 +288,7 @@ def gen(camera,pose_type):
     status=2
     keep_time=[0,0,0]
     #여기에 소리도 추가하자
+    playsound.playsound(audioFile+"motion.mp3")
     while True:
         frame = camera.get_frame(pose_type,status,keep_time)
         if frame=="END":
