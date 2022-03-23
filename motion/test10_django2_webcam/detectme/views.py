@@ -23,7 +23,7 @@ weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
-
+# 자세 => 빛때문에 인식이 잘 안된다 멀리있으면 더욱 그렇다. // Timer 방식을 표정 인식처럼 바꿔야 할 듯...
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
 def check_HandsUp(points):
@@ -104,8 +104,8 @@ def check_Stretching(points):
         lk_x,lk_y=points[12]
         la_x,la_y=points[13]
         
-        #기본적으로 O 조건을 만족시킬 것 check_O()
-        if check_O(points):
+        #기본적으로 O 조건을 만족시킬 것 check_O() 
+        if check_O(points): 
             #오른쪽을 구부림
             if rk_x<rh_x and rk_x<ra_x and ra_y<la_y:
                 return True
@@ -136,7 +136,7 @@ def show_result(pose_type,status): #END/Again
             print("만세를 선택하셨습니다.")
         
         elif pose_type=="Stretching":
-            print("자세유지에 성공하셨습니다.")
+            print("자세유지에 성공하셨습니다.\n#####################")
             
         return "END"
             

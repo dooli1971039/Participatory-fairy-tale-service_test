@@ -6,6 +6,7 @@ urlpatterns = [
     
     path("detectme_OX",views.detectme_OX,name="detectme_OX"),
     path("detectme_XHandsUp",views.detectme_XHandsUp,name="detectme_XHandsUp"),
+    path("detectme_Stretching",views.detectme_Stretching,name="detectme_Stretching"),
     
     path('OX',views.OX,name="OX"),
     path('XHandsUp',views.XHandsUp,name="XHandsUp"),
