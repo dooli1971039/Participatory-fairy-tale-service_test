@@ -182,7 +182,8 @@ def count_time(status,keep_time,pose_type):
     
 class Openpose(object):
     def __init__(self):
-        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        #self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        self.video = cv2.VideoCapture(0)
         #playsound.playsound(audioFile+"motion.mp3")
         #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
