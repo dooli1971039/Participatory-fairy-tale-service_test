@@ -1,3 +1,4 @@
+#Participatory-fairy-tale-service_test에서 실행
 import playsound
 playsound.playsound("motion/test7/audio/motion.mp3")
 
