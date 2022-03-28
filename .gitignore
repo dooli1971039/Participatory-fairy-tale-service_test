@@ -11,3 +11,5 @@ motion/test11_django2_webcam_origin/detectme/file
 yoonjiy
 
 .DS_Store
+*.pyc
+__pycache__/
