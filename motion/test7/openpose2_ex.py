@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from pathlib import Path
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -13,9 +14,9 @@ POSE_PAIRS = [ ["Head", "Neck"], ["Neck", "RShoulder"], ["RShoulder", "RElbow"],
                 ["RKnee", "RAnkle"], ["Chest", "LHip"], ["LHip", "LKnee"], ["LKnee", "LAnkle"] ]
     
 # 각 파일 path
-
-protoFile = "D:/Participatory-fairy-tale-service_test/motion/test7/file/pose_deploy_linevec_faster_4_stages.prototxt"
-weightsFile = "D:/Participatory-fairy-tale-service_test/motion/test7/file/pose_iter_160000.caffemodel"
+BASE_DIR=Path(__file__).resolve().parent
+protoFile = str(BASE_DIR)+"/file/pose_deploy_linevec_faster_4_stages.prototxt"
+weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
  
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
