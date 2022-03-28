@@ -1,5 +1,5 @@
 import playsound
-playsound.playsound("motion/test7/audio/motion.mp3")
+playsound.playsound("./audio/motion.mp3")
 
 # import pygame
 # pygame.mixer.init()
