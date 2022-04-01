@@ -9,8 +9,8 @@ const recognition = new SpeechRecognition();
 recognition.interimResults = true; //아직 끝나지 않은 상태의 음성을 받을 것인지 아닌지(default: false)
 recognition.lang = "ko-KR"; //한국어 인식
 
-let h1 = document.createElement("h1");
 const words = document.querySelector(".words");
+let h1 = document.createElement("h1");
 words.appendChild(h1);
 
 recognition.addEventListener("result", (e) => {
