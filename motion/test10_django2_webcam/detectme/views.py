@@ -28,15 +28,28 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
 def check_HandsUp(points):
-     #머리, 오른쪽 손목, 왼쪽 손목
-    if points[0] and points[4] and points[7]:
-        head_x,head_y=points[0]
-        r_x,r_y=points[4]
-        l_x,l_y =points[7]
-        
-        #머리보다 양 손목의 위치가 높아야 한다.
-        #양 손목 중간에 머리가 위치해야 한다.
-        if l_x>head_x and head_x>r_x and head_y>=r_y and head_y>=l_y:  
+    #오른쪽 어깨, 오른쪽 팔꿈치, 왼쪽 어깨, 왼쪽 팔꿈치
+    if points[2] and points[3] and points[5] and points[6]:
+        rs_x,rs_y=points[2]
+        re_x,re_y=points[3]
+        ls_x,ls_y=points[5]
+        le_x,le_y=points[6]
+
+        ############################### 이 부분을 손목이 아니라 팔꿈치로 바꿀 것인가??
+        if rs_y > re_y and ls_y > le_y:
+            #머리, 오른쪽 손목, 왼쪽 손목
+            if points[0] and points[4] and points[7]:
+                head_x,head_y=points[0]
+                r_x,r_y=points[4]
+                l_x,l_y =points[7]
+
+                #머리보다 양 손목의 위치가 높아야 한다.
+                #양 손목 중간에 머리가 위치해야 한다.
+                if l_x>head_x and head_x>r_x and head_y>=r_y and head_y>=l_y:  
+                    return True
+                else:
+                    return False
+
             return True
         else:
             return False
