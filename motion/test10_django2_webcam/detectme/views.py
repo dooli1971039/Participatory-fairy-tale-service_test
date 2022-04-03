@@ -29,28 +29,28 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 #아래/오른쪽으로 갈수록 증가한다
 def check_HandsUp(points):
     #오른쪽 어깨, 오른쪽 팔꿈치, 왼쪽 어깨, 왼쪽 팔꿈치
-    if points[2] and points[3] and points[5] and points[6]:
+    if points[0] and points[2] and points[3] and points[5] and points[6]:
+        head_x,head_y=points[0]
         rs_x,rs_y=points[2]
         re_x,re_y=points[3]
         ls_x,ls_y=points[5]
         le_x,le_y=points[6]
 
-        ############################### 이 부분을 손목이 아니라 팔꿈치로 바꿀 것인가??
-        if rs_y > re_y and ls_y > le_y:
-            #머리, 오른쪽 손목, 왼쪽 손목
-            if points[0] and points[4] and points[7]:
-                head_x,head_y=points[0]
-                r_x,r_y=points[4]
-                l_x,l_y =points[7]
+        if re_y < rs_y and ls_y < le_y and re_y < head_x and head_x < le_y: 
+            #오른쪽 손목, 왼쪽 손목
+            if points[4] and points[7]: 
+                rw_x,rw_y=points[4]
+                lw_x,lw_y =points[7]
 
-                #머리보다 양 손목의 위치가 높아야 한다.
-                #양 손목 중간에 머리가 위치해야 한다.
-                if l_x>head_x and head_x>r_x and head_y>=r_y and head_y>=l_y:  
+                #양쪽 손목 중, 어느 하나라도 머리보다는 위에 가야한다.
+                if rw_y<head_y or lw_y < head_y:  
                     return True
                 else:
                     return False
-
-            return True
+                
+            else:
+                return False
+            
         else:
             return False
         
@@ -66,9 +66,9 @@ def check_O(points):
         lw_x,lw_y=points[7]
         
         #기본적으로 만세 조건을 만족시킬것 chek_HandsUP()
-        #양 손목이 팔꿈치보다 안쪽에 위치할 것
-        #양 손목이 팔꿈치보다 위쪽에 위치할 것
-        if check_HandsUp(points) and re_x<rw_x and le_x>lw_x and re_y>rw_y and le_y>lw_y:
+        #손목이 팔꿈치보다 안쪽에 위치할 것
+        #손목이 팔꿈치보다 위쪽에 위치할 것
+        if check_HandsUp(points) and ( (re_x<rw_x and re_y>rw_y) or (le_x>lw_x and le_y>lw_y) ):
             return True
         else:
             return False
