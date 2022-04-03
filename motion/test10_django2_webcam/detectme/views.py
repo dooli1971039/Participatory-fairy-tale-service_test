@@ -29,21 +29,19 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 #아래/오른쪽으로 갈수록 증가한다
 
 def check_HandsUp(points):
-    #머리, 오른쪽 어깨, 오른쪽 팔꿈치, 왼쪽 어깨, 왼쪽 팔꿈치
     if points[0] and points[2] and points[3] and points[5] and points[6]:
-        head_x,head_y=points[0]
-        rs_x,rs_y=points[2]
-        re_x,re_y=points[3]
-        ls_x,ls_y=points[5]
-        le_x,le_y=points[6]
+        head_x,head_y=points[0] #머리
+        rs_x,rs_y=points[2] #오른쪽 어깨
+        re_x,re_y=points[3] #오른쪽 팔꿈치
+        ls_x,ls_y=points[5] #왼쪽 어깨
+        le_x,le_y=points[6] #왼쪽 팔꿈치
         
         #팔꿈치가 어깨보다 높을 것, 양 팔꿈치 사이에 머리가 위치할 것
         if re_y < rs_y and le_y < ls_y  and re_x < head_x and head_x < le_x: 
             
-            #오른쪽 손목, 왼쪽 손목
             if points[4] and points[7]: 
-                rw_x,rw_y=points[4]
-                lw_x,lw_y =points[7]
+                rw_x,rw_y=points[4] #오른쪽 손목
+                lw_x,lw_y =points[7] #왼쪽 손목
 
                 #양쪽 손목 중, 어느 하나라도 머리보다는 위에 가야한다.
                 if rw_y<head_y or lw_y < head_y:  
@@ -61,14 +59,13 @@ def check_HandsUp(points):
         return False
 
 def check_O(points):
-    #오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 팔꿈치, 왼쪽 손목
     if points[3] and points[4] and points[6] and points[7]:
-        re_x,re_y=points[3]
-        rw_x,rw_y=points[4]
-        le_x,le_y=points[6]
-        lw_x,lw_y=points[7]
+        re_x,re_y=points[3] #오른쪽 팔꿈치
+        rw_x,rw_y=points[4] #오른쪽 손목
+        le_x,le_y=points[6] #왼쪽 팔꿈치
+        lw_x,lw_y=points[7] #왼쪽 손목
         
-        #기본적으로 만세 조건을 만족시킬것 chek_HandsUP()
+        #기본적으로 만세 조건을 만족시킬것 check_HandsUP()
         #손목이 팔꿈치보다 안쪽에 위치할 것
         #손목이 팔꿈치보다 위쪽에 위치할 것
         if check_HandsUp(points) and ( (re_x<rw_x and rw_y<re_y) or (le_x>lw_x and le_y>lw_y) ):
@@ -80,21 +77,17 @@ def check_O(points):
         return False
     
 def check_X(points):
-    #머리, 오른쪽 어깨, 오른쪽 팔꿈치, 오른쪽 손목, 왼쪽 어깨, 왼쪽 팔꿈치, 왼쪽 손목, 몸통(가슴)
     if points[0] and points[2] and points[3] and points[4] and points[5] and points[6] and points[7] and points[8]:
-        head_x,head_y=points[0]
-        rs_x,rs_y=points[2]
-        re_x,re_y=points[3]
-        rw_x,rw_y=points[4]
-        ls_x,ls_y=points[5]
-        le_x,le_y=points[6]
-        lw_x,lw_y=points[7]
-        b_x,b_y=points[8]  # 가슴이 아니라 골반을 기준으로
+        head_x,head_y=points[0] #머리
+        rs_x,rs_y=points[2] #오른쪽 어깨
+        re_x,re_y=points[3] #오른쪽 팔꿈치
+        rw_x,rw_y=points[4] #오른쪽 손목
+        ls_x,ls_y=points[5] #왼쪽 어깨
+        le_x,le_y=points[6] #왼쪽 팔꿈치
+        lw_x,lw_y=points[7] #왼쪽 손목
+        b_x,b_y=points[8]  #골반(오른쪽)
         
-        #골반보다 팔꿈치가 위쪽에 위치
-        #팔꿈치보다 손목이 위쪽에 위치
-        #손목보다 머리가 위쪽에 위치
-        #양 팔꿈치 사이에 몸이 위치
+        #골반보다 팔꿈치가 위쪽에 위치 and 팔꿈치보다 손목이 위쪽에 위치 and 손목보다 머리가 위쪽에 위치
         #어깨 안쪽으로 손목이 위치
         if (b_y>le_y and b_y>re_y) and (le_y>lw_y and re_y >rw_y) and(lw_y>head_y and rw_y>head_y):
             if rs_x<rw_x or lw_x<ls_x:
@@ -115,12 +108,12 @@ def check_X(points):
 def check_Stretching(points):
     #오른쪽 골반, 오른쪽 무릎, 오른쪽 발목,  왼쪽 골반, 왼쪽 무릎, 왼쪽 발목
     if points[8] and points[9] and points[10] and points[11] and points[12] and points[13]:
-        rh_x,rh_y=points[8]
-        rk_x,rk_y=points[9]
-        ra_x,ra_y=points[10]
-        lh_x,lh_y=points[11]
-        lk_x,lk_y=points[12]
-        la_x,la_y=points[13]
+        rh_x,rh_y=points[8] #오른쪽 골반
+        rk_x,rk_y=points[9] #오른쪽 무릎
+        ra_x,ra_y=points[10] #오른쪽 발목
+        lh_x,lh_y=points[11] #왼쪽 골반
+        lk_x,lk_y=points[12] #왼쪽 무릎
+        la_x,la_y=points[13] #왼쪽 발목
         
         #기본적으로 O 조건을 만족시킬 것 check_O() 
         if check_O(points): 
