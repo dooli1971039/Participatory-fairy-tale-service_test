@@ -1,9 +1,12 @@
+from glob import glob
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import cv2
 from pathlib import Path
 import playsound
+import time
+import threading
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -27,6 +30,33 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 # 자세 => 빛때문에 인식이 잘 안된다 멀리있으면 더욱 그렇다. // Timer 방식을 표정 인식처럼 바꿔야 할 듯...
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
+
+
+status=2
+keep_time=[0,0,0]
+return_result=""
+def check_timer(pose_type):
+    global keep_time,status
+    global return_result
+    if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
+        result=show_result(pose_type,status) #END / Again
+        if result=="END":
+            return_result=result
+        elif result=="Again":
+            keep_time[0]=keep_time[1]=keep_time[2]=0 #시간 초기화
+    
+    elif keep_time[status]==0:
+        #다른 모션에서 바뀌어 들어옴
+        keep_time[0]=keep_time[1]=keep_time[2]=0
+        keep_time[status]+=1
+
+    elif keep_time[status]!=0:
+        keep_time[status]+=1
+
+    print(keep_time[0],keep_time[1],keep_time[2])
+    
+    if return_result=="":
+        threading.Timer(1.0,check_timer,(pose_type,)).start()
 
 def check_HandsUp(points):
     if points[0] and points[2] and points[3] and points[5] and points[6]:
@@ -165,7 +195,6 @@ check=0;
 def count_time(status,keep_time,pose_type):
     #대충 1초에 3번 정도 불리는 듯
     global check
-    #print(elapsed,"####") 
     if check==3:
         if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
             result=show_result(pose_type,status) #END / Again
@@ -198,13 +227,16 @@ class Openpose(object):
         #self.fps = FPS().start()
         #self.video = cv2.VideoCapture(0)  #for mac
         self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
-
+        self.status=status
+        
     def __del__(self):
         self.video.release()
         cv2.destroyAllWindows()
 
     
-    def get_frame(self,pose_type,status,keep_time):
+    def get_frame(self,pose_type):
+        global status,return_result
+        self.status=status
         _,frame = self.video.read()
         inputWidth=320;
         inputHeight=240;
@@ -277,9 +309,9 @@ class Openpose(object):
         
         #시간   
         # elapsed=time.time()-self.start
-
-        check_end=count_time(status,keep_time,pose_type)  #스트레칭일때는 다르게 하자. 조건문 추가
-        if check_end=="END":
+        
+        #check_end=count_time(status,keep_time,pose_type)  #스트레칭일때는 다르게 하자. 조건문 추가
+        if return_result=="END":
             return "END"
                 
         
@@ -302,12 +334,11 @@ class Openpose(object):
     
 
 def gen(camera,pose_type):
-    status=2
-    keep_time=[0,0,0]
     #여기에 소리도 추가하자
     playsound.playsound(audioFile+"motion.mp3")
+    check_timer(pose_type)
     while True:
-        frame = camera.get_frame(pose_type,status,keep_time)
+        frame = camera.get_frame(pose_type)
         if frame=="END":
             del camera
             break
