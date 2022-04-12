@@ -191,32 +191,6 @@ def show_result(pose_type,status): #END/Again
         return "END"
             
 
-check=0;
-def count_time(status,keep_time,pose_type):
-    #대충 1초에 3번 정도 불리는 듯
-    global check
-    if check==3:
-        if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
-            result=show_result(pose_type,status) #END / Again
-            if result=="END":
-                return result
-            elif result=="Again":
-                 keep_time[0]=keep_time[1]=keep_time[2]=0 #시간 초기화
-        
-        elif keep_time[status]==0:
-            #다른 모션에서 바뀌어 들어옴
-            keep_time[0]=keep_time[1]=keep_time[2]=0
-            keep_time[status]+=1
-
-    
-        elif keep_time[status]!=0:
-            keep_time[status]+=1
-        
-        
-        check=0
-    else:
-        check+=1
-        
 
     
 class Openpose(object):
