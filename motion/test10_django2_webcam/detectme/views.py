@@ -35,7 +35,7 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 status=2
 keep_time=[0,0,0]
 return_result=""
-def check_timer(pose_type):
+def check_timer1(pose_type):  #O,X,HandsUp
     global keep_time,status
     global return_result
     if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
@@ -56,7 +56,27 @@ def check_timer(pose_type):
     print(keep_time[0],keep_time[1],keep_time[2])
     
     if return_result=="":
-        threading.Timer(1.0,check_timer,(pose_type,)).start()
+        threading.Timer(1.0,check_timer1,(pose_type,)).start()
+        
+def check_timer2(pose_type):  #Stretching
+    global keep_time,status
+    global return_result
+    if keep_time[0]==10 or keep_time[2]==8: # 자세유지 10초 하면 끝
+        result=show_result(pose_type,status) #END / Fail
+        return_result=result
+    
+    elif keep_time[status]==0:
+        #다른 모션에서 바뀌어 들어옴
+        keep_time[0]=keep_time[2]=0
+        keep_time[status]+=1
+
+    elif keep_time[status]!=0:
+        keep_time[status]+=1
+
+    print(keep_time[0],keep_time[1],keep_time[2])
+    
+    if return_result=="":
+        threading.Timer(1.0,check_timer2,(pose_type,)).start()
 
 def check_HandsUp(points):
     if points[0] and points[2] and points[3] and points[5] and points[6]:
@@ -165,7 +185,7 @@ def show_result(pose_type,status): #END/Again
         if pose_type=="Stretching":
             print("자세 유지에 실패하셨습니다.") 
             playsound.playsound(audioFile+"Fail.mp3")
-            return "END"
+            return "Fail"
         else:
             print("자세를 취해주세요.")  #mp3 추가
             return "Again"
@@ -280,12 +300,11 @@ class Openpose(object):
             else:
                 status=2
                 cv2.putText(frame, "None" , (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0), 1, lineType=cv2.LINE_AA)
-        
-        #시간   
-        # elapsed=time.time()-self.start
-        
-        #check_end=count_time(status,keep_time,pose_type)  #스트레칭일때는 다르게 하자. 조건문 추가
-        if return_result=="END":
+
+
+        if pose_type!="Stretching" and return_result=="END":
+            return "END"
+        elif pose_type=="Stretching" and (return_result=="END" or return_result=="Fail"):
             return "END"
                 
         
@@ -310,7 +329,12 @@ class Openpose(object):
 def gen(camera,pose_type):
     #여기에 소리도 추가하자
     playsound.playsound(audioFile+"motion.mp3")
-    check_timer(pose_type)
+    
+    if pose_type=="Stretching":
+        check_timer2(pose_type)
+    else:
+        check_timer1(pose_type)
+        
     while True:
         frame = camera.get_frame(pose_type)
         if frame=="END":
