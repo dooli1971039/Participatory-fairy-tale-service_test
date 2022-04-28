@@ -34,13 +34,16 @@ net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
 status=2
 keep_time=[0,0,0]
+O_X_HandsUp=["O","X","HandsUp"]
+Success_Fail=["Success","Fail"]
+
 return_result=""
 def check_timer1(pose_type):  #O,X,HandsUp
     global keep_time,status
     global return_result
     if keep_time[0]==5 or keep_time[1]==5 or keep_time[2]==8:
-        result=show_result(pose_type,status) #END / Again
-        if result=="END":
+        result=show_result(pose_type,status) #O,X,HandsUp / Again
+        if result in O_X_HandsUp:
             return_result=result
         elif result=="Again":
             keep_time[0]=keep_time[1]=keep_time[2]=0 #시간 초기화
@@ -62,7 +65,7 @@ def check_timer2(pose_type):  #Stretching
     global keep_time,status
     global return_result
     if keep_time[0]==10 or keep_time[2]==8: # 자세유지 10초 하면 끝
-        result=show_result(pose_type,status) #END / Fail
+        result=show_result(pose_type,status) #Success / Fail
         return_result=result
     
     elif keep_time[status]==0:
@@ -193,22 +196,23 @@ def show_result(pose_type,status): #END/Again
     elif status==1: #status 1
         print("X를 선택하셨습니다.")
         playsound.playsound(audioFile+"X_choose.mp3")
-        return "END"
+        return "X"
         
     else: #status 0
         if pose_type=="OX":
             print("O를 선택하셨습니다.")
             playsound.playsound(audioFile+"O_choose.mp3")
+            return "O"
             
         elif pose_type=="XHandsUp":
             print("만세를 선택하셨습니다.")
             playsound.playsound(audioFile+"HandsUp_choose.mp3")
+            return "HandsUp"
         
         elif pose_type=="Stretching":
             print("자세유지에 성공하셨습니다.")
             playsound.playsound(audioFile+"OK.mp3")
-            
-        return "END"
+            return "Success"
             
 
 
@@ -302,10 +306,9 @@ class Openpose(object):
                 cv2.putText(frame, "None" , (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 0), 1, lineType=cv2.LINE_AA)
 
 
-        if pose_type!="Stretching" and return_result=="END":
-            return "END"
-        elif pose_type=="Stretching" and (return_result=="END" or return_result=="Fail"):
-            return "END"
+        if return_result in O_X_HandsUp or return_result in Success_Fail:
+            return return_result
+        
                 
         
 
@@ -337,7 +340,7 @@ def gen(camera,pose_type):
         
     while True:
         frame = camera.get_frame(pose_type)
-        if frame=="END":
+        if frame in O_X_HandsUp or frame in Success_Fail:
             del camera
             break
         else:
@@ -375,6 +378,12 @@ def detectme_Stretching(request):
 def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
  
+def result(request):
+    content = f'''
+    {return_result}
+    '''
+    return HttpResponse(content)
+ 
 def HTMLTemplate(pose_type): 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -382,7 +391,7 @@ def HTMLTemplate(pose_type):
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta http-equiv="refresh" content="15"; url=http://127.0.0.1:8000/result">
+        <!--  <meta http-equiv="refresh" content="15"; url=http://127.0.0.1:8000/result">    -->
         <title>Title</title>
     </head>
     <body>
