@@ -1,4 +1,5 @@
 from glob import glob
+from http.client import HTTPResponse
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
@@ -7,6 +8,7 @@ from pathlib import Path
 import playsound
 import time
 import threading
+from django.urls import reverse
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -223,13 +225,14 @@ class Openpose(object):
         #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
-        #self.video = cv2.VideoCapture(0)  #for mac
-        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
+        self.video = cv2.VideoCapture(0)  #for mac
+        #self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
         self.status=status
         
     def __del__(self):
         self.video.release()
         cv2.destroyAllWindows()
+        
 
     
     def get_frame(self,pose_type):
@@ -328,8 +331,8 @@ class Openpose(object):
         return jpeg.tobytes()
             
     
-
-def gen(camera,pose_type):
+#request 추가해둠... 이걸 쓸까.. ->스트레칭도
+def gen(request,camera,pose_type):
     #여기에 소리도 추가하자
     playsound.playsound(audioFile+"motion.mp3")
     
@@ -342,6 +345,7 @@ def gen(camera,pose_type):
         frame = camera.get_frame(pose_type)
         if frame in O_X_HandsUp or frame in Success_Fail:
             del camera
+            #return render(request,"home.html") #안되네...
             break
         else:
             yield(b'--frame\r\n'
@@ -367,7 +371,7 @@ def detectme_XHandsUp(request):
 @gzip.gzip_page
 def detectme_Stretching(request):
     try:
-        return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
+        return StreamingHttpResponse(gen(request,Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
@@ -379,8 +383,21 @@ def home(request):
     return render(request,"home.html") #home.html을 호출해서 띄워준다.
  
 def result(request):
+    global return_result
     content = f'''
-    {return_result}
+    <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        
+        <title>Title</title>
+    </head>
+    <body>
+    <h1>{return_result}</h1>
+    </body>
+    </html>
     '''
     return HttpResponse(content)
  
@@ -391,7 +408,7 @@ def HTMLTemplate(pose_type):
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!--  <meta http-equiv="refresh" content="15"; url=http://127.0.0.1:8000/result">    -->
+        
         <title>Title</title>
     </head>
     <body>
