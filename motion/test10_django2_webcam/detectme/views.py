@@ -225,9 +225,11 @@ class Openpose(object):
         #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
-        self.video = cv2.VideoCapture(0)  #for mac
-        #self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
-        self.status=status
+        #self.video = cv2.VideoCapture(0)  #for mac
+        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
+        global status,return_result
+        status=2
+        return_result=""
         
     def __del__(self):
         self.video.release()
@@ -332,7 +334,7 @@ class Openpose(object):
             
     
 #request 추가해둠... 이걸 쓸까.. ->스트레칭도
-def gen(request,camera,pose_type):
+def gen(camera,pose_type):
     #여기에 소리도 추가하자
     playsound.playsound(audioFile+"motion.mp3")
     
@@ -345,7 +347,6 @@ def gen(request,camera,pose_type):
         frame = camera.get_frame(pose_type)
         if frame in O_X_HandsUp or frame in Success_Fail:
             del camera
-            #return render(request,"home.html") #안되네...
             break
         else:
             yield(b'--frame\r\n'
@@ -371,7 +372,7 @@ def detectme_XHandsUp(request):
 @gzip.gzip_page
 def detectme_Stretching(request):
     try:
-        return StreamingHttpResponse(gen(request,Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
+        return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
@@ -384,58 +385,20 @@ def home(request):
  
 def result(request):
     global return_result
-    content = f'''
-    <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        
-        <title>Title</title>
-    </head>
-    <body>
-    <h1>{return_result}</h1>
-    </body>
-    </html>
-    '''
-    return HttpResponse(content)
+    return render(request,"result.html",{"return_result":return_result})
  
-def HTMLTemplate(pose_type): 
-    return f'''<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        
-        <title>Title</title>
-    </head>
-    <body>
-        <h1>{pose_type}-Pose</h1>
-        <table>
-            <tr>
-                <td>
-                    <img
-                        src="http://127.0.0.1:8000/detectme_{pose_type}"
-                        style="width: 320px; height: 240px"
-                    />
-                </td>
-                <td><h2><a href="/">돌아가기</a></h2></td>
-            </tr>
-        </table>
-    </body>
-</html>
-'''
+def HTMLTemplate(request,pose_type): 
+    return render(request,"HTMLTemplate.html",{"pose_type":pose_type})
+
 
 def OX(request):
     pose_type="OX"
-    return HttpResponse(HTMLTemplate(pose_type))
+    return HttpResponse(HTMLTemplate(request,pose_type))
 
 def XHandsUp(request):
     pose_type="XHandsUp"
-    return HttpResponse(HTMLTemplate(pose_type))
+    return HttpResponse(HTMLTemplate(request,pose_type))
 
 def Stretching(request):
     pose_type="Stretching"
-    return HttpResponse(HTMLTemplate(pose_type))
+    return HttpResponse(HTMLTemplate(request,pose_type))
