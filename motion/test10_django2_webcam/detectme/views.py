@@ -1,14 +1,14 @@
 from glob import glob
-from http.client import HTTPResponse
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.decorators import gzip
-from django.http import StreamingHttpResponse
+from django.http import HttpResponseRedirect, StreamingHttpResponse
+from django.urls import reverse
 import cv2
 from pathlib import Path
 import playsound
 import time
 import threading
-from django.urls import reverse
+
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
 BODY_PARTS = { "Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
@@ -233,8 +233,11 @@ class Openpose(object):
         
     def __del__(self):
         self.video.release()
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
         
+        #return HttpResponseRedirect(reverse("detectme:result"))
+
+
 
     
     def get_frame(self,pose_type):
@@ -333,7 +336,6 @@ class Openpose(object):
         return jpeg.tobytes()
             
     
-#request 추가해둠... 이걸 쓸까.. ->스트레칭도
 def gen(camera,pose_type):
     #여기에 소리도 추가하자
     playsound.playsound(audioFile+"motion.mp3")
@@ -351,6 +353,10 @@ def gen(camera,pose_type):
         else:
             yield(b'--frame\r\n'
                  b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    
+    # print("####2")
+    # yield "END"       
+    # yield HttpResponseRedirect(reverse("detectme:result")) ########
 
 
 @gzip.gzip_page
@@ -393,6 +399,7 @@ def HTMLTemplate(request,pose_type):
 
 def OX(request):
     pose_type="OX"
+    #return render(request,"HTMLTemplate.html",{"pose_type":pose_type})
     return HttpResponse(HTMLTemplate(request,pose_type))
 
 def XHandsUp(request):

@@ -13,14 +13,54 @@
             <tr>
                 <td>
                     <img
-                        src="http://127.0.0.1:8000/detectme_{{pose_type}}"
+                        src="/detectme_{{pose_type}}"
                         style="width: 320px; height: 240px"
+                        id="cv_img"
                     />
                 </td>
                 <td>
                     <h2><a href="/">돌아가기</a></h2>
                 </td>
+                <video id="videoInput"></video>
             </tr>
         </table>
+
+        <script type="text/javascript">
+            navigator.getUserMedia =
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia;
+
+            //var constraints = { video: { facingMode: { exact: "environment" }, width: { exact: 395 }, height: { exact: 395 } }, audio: false };
+            var constraints = {audio: false, video: true};
+
+            time_loop = setInterval(function () {
+                var video = document.getElementById("videoInput");
+
+                function successCallback(stream) {
+                    video.srcObject = stream;
+                    stream.getTracks().forEach(function (track) {
+                        track.stop();
+                    });
+                    console.log("END");
+                    clearInterval(time_loop);
+                    var meta = document.createElement("meta");
+                    meta.httpEquiv = "refresh";
+                    meta.content = "0;url=http://127.0.0.1:8000/result";
+
+                    document.getElementsByTagName("head")[0].appendChild(meta);
+                }
+
+                function errorCallback(error) {
+                    console.log("cv");
+                }
+
+                navigator.getUserMedia(
+                    constraints,
+                    successCallback,
+                    errorCallback
+                );
+            }, 1000);
+        </script>
     </body>
 </html>
