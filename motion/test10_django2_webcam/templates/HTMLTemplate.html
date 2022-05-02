@@ -21,38 +21,38 @@
                 <td>
                     <h2><a href="/">돌아가기</a></h2>
                 </td>
-                <video id="videoInput"></video>
+                <video id="videoInput" style="display: none"></video>
             </tr>
         </table>
 
         <script type="text/javascript">
+            var meta = document.createElement("meta");
+            meta.httpEquiv = "refresh";
+            meta.content = "0;url=http://127.0.0.1:8000/result";
+
             navigator.getUserMedia =
                 navigator.getUserMedia ||
                 navigator.webkitGetUserMedia ||
                 navigator.mozGetUserMedia;
 
-            //var constraints = { video: { facingMode: { exact: "environment" }, width: { exact: 395 }, height: { exact: 395 } }, audio: false };
             var constraints = {audio: false, video: true};
 
             time_loop = setInterval(function () {
                 var video = document.getElementById("videoInput");
 
                 function successCallback(stream) {
-                    video.srcObject = stream;
+                    //video.srcObject = stream;
                     stream.getTracks().forEach(function (track) {
                         track.stop();
                     });
-                    console.log("END");
+                    //console.log("END");
                     clearInterval(time_loop);
-                    var meta = document.createElement("meta");
-                    meta.httpEquiv = "refresh";
-                    meta.content = "0;url=http://127.0.0.1:8000/result";
 
                     document.getElementsByTagName("head")[0].appendChild(meta);
                 }
 
                 function errorCallback(error) {
-                    console.log("cv");
+                    //console.log("cv");
                 }
 
                 navigator.getUserMedia(

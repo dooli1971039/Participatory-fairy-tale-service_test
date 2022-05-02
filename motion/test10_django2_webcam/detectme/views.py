@@ -29,10 +29,9 @@ audioFile=str(BASE_DIR)+"/audio/"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
-# 자세 => 빛때문에 인식이 잘 안된다 멀리있으면 더욱 그렇다. // Timer 방식을 표정 인식처럼 바꿔야 할 듯...
+
 #openCV의 좌표계는 좌측위가 (0,0)이다...
 #아래/오른쪽으로 갈수록 증가한다
-
 
 status=2
 keep_time=[0,0,0]
@@ -234,8 +233,6 @@ class Openpose(object):
     def __del__(self):
         self.video.release()
         #cv2.destroyAllWindows()
-        
-        #return HttpResponseRedirect(reverse("detectme:result"))
 
 
 
@@ -353,10 +350,6 @@ def gen(camera,pose_type):
         else:
             yield(b'--frame\r\n'
                  b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-    
-    # print("####2")
-    # yield "END"       
-    # yield HttpResponseRedirect(reverse("detectme:result")) ########
 
 
 @gzip.gzip_page
