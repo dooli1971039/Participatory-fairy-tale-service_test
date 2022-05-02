@@ -224,8 +224,8 @@ class Openpose(object):
         #self.start=time.time() #시간
         #self.video=VideoStream(src=0).start()
         #self.fps = FPS().start()
-        #self.video = cv2.VideoCapture(0)  #for mac
-        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
+        self.video = cv2.VideoCapture(0)  #for mac
+        #self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
         global status,return_result
         status=2
         return_result=""

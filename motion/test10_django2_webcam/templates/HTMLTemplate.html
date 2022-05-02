@@ -37,7 +37,10 @@
 
             var constraints = {audio: false, video: true};
 
-            time_loop = setInterval(function () {
+            setTimeout(later,5000);
+
+            function later(){
+                time_loop = setInterval(function () {
                 var video = document.getElementById("videoInput");
 
                 function successCallback(stream) {
@@ -60,7 +63,8 @@
                     successCallback,
                     errorCallback
                 );
-            }, 1000);
+                }, 1000);
+            }
         </script>
     </body>
 </html>
