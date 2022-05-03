@@ -219,13 +219,11 @@ def show_result(pose_type,status): #END/Again
 
     
 class Openpose(object):
-    def __init__(self):
-        #playsound.playsound(audioFile+"motion.mp3")
-        #self.start=time.time() #시간
-        #self.video=VideoStream(src=0).start()
-        #self.fps = FPS().start()
-        self.video = cv2.VideoCapture(0)  #for mac
-        #self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
+    def __init__(self):    
+        self.video = cv2.VideoCapture(0,cv2.CAP_DSHOW)  #for window
+        if not self.video.isOpened():
+            self.video = cv2.VideoCapture(0)  #for mac
+
         global status,return_result
         status=2
         return_result=""
@@ -233,8 +231,6 @@ class Openpose(object):
     def __del__(self):
         self.video.release()
         #cv2.destroyAllWindows()
-
-
 
     
     def get_frame(self,pose_type):
