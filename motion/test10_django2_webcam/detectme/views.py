@@ -1,7 +1,7 @@
 from glob import glob
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.decorators import gzip
-from django.http import HttpResponseRedirect, StreamingHttpResponse
+from django.http import HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.urls import reverse
 import cv2
 from pathlib import Path
@@ -65,6 +65,7 @@ def check_timer1(pose_type):  #O,X,HandsUp
 def check_timer2(pose_type):  #Stretching
     global keep_time,status
     global return_result
+    #if keep_time[0]==10 or keep_time[2]==3:
     if keep_time[0]==10 or keep_time[2]==8: # 자세유지 10초 하면 끝
         result=show_result(pose_type,status) #Success / Fail
         return_result=result
@@ -231,7 +232,7 @@ class Openpose(object):
         
     def __del__(self):
         self.video.release()
-        #cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
     
     def get_frame(self,pose_type):
@@ -370,12 +371,15 @@ def detectme_XHandsUp(request):
 @gzip.gzip_page
 def detectme_Stretching(request):
     try:
+        ########################## 동영상을 안 띄우면 반환 가능
         return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
         pass
 
-
+def get_data(request):
+    data={"return_result":return_result}
+    return JsonResponse(data)
 
 # Create your views here.
 def home(request):
