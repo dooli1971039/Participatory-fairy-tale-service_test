@@ -224,9 +224,10 @@ class Openpose(object):
         if not self.video.isOpened():
             self.video = cv2.VideoCapture(0)  #for mac
 
-        global status,return_result
+        global status,return_result,keep_time
         status=2
         return_result=""
+        keep_time=[0,0,0]
         
     def __del__(self):
         self.video.release()
@@ -340,6 +341,8 @@ def gen(camera,pose_type):
         
     while True:
         frame = camera.get_frame(pose_type)
+        #print(type(frame))
+                
         if frame in O_X_HandsUp or frame in Success_Fail:
             del camera
             break
