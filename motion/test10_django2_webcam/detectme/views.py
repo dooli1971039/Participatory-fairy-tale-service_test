@@ -342,7 +342,6 @@ def gen(camera,pose_type):
         
     while True:
         frame = camera.get_frame(pose_type)
-        #print(type(frame))
                 
         if frame in O_X_HandsUp or frame in Success_Fail:
             del camera
@@ -371,7 +370,6 @@ def detectme_XHandsUp(request):
 @gzip.gzip_page
 def detectme_Stretching(request):
     try:
-        ########################## 동영상을 안 띄우면 반환 가능
         return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
