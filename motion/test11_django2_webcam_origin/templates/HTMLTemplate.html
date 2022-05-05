@@ -12,49 +12,22 @@
         <table>
             <tr>
                 <td>
-                    <img
+                    <!-- <img
                         src="/detectme_{{pose_type}}"
                         style="width: 320px; height: 240px"
                         id="cv_img"
-                    />
+                    /> -->
+                    <video id="videoInput"></video>
                 </td>
                 <td>
                     <h2><a href="/">돌아가기</a></h2>
                 </td>
-                <video id="videoInput" style="display: none"></video>
             </tr>
         </table>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+        <script async src="https://docs.opencv.org/3.4/opencv.js"></script>
         <script type="text/javascript">
-
-            setTimeout(later,3000);
-
-            function later(){
-                result=setInterval(function () {
-                $.ajax({
-                    url: "/get_data",
-                    dataType: "json",
-                    success: function (data) {
-                        if (data.return_result != "") {
-                            console.log(data.return_result)
-                            //window.location = "/result";
-                            clearInterval(result);
-                        }
-                    },
-                    error: function (request, status, error) {
-                        console.log("실패");
-                    },
-                });
-            }, 1000);
-            }
-            
-        </script>
-
-        <!-- <script type="text/javascript">
-            var meta = document.createElement("meta");
-            meta.httpEquiv = "refresh";
-            meta.content = "0;url=http://127.0.0.1:8000/result";
 
             navigator.getUserMedia =
                 navigator.getUserMedia ||
@@ -63,36 +36,24 @@
 
             var constraints = {audio: false, video: true};
 
-            setTimeout(later, 5000);
 
-            function later() {
-                time_loop = setInterval(function () {
-                    var video = document.getElementById("videoInput");
+            var video = document.getElementById("videoInput");
 
-                    function successCallback(stream) {
-                        //video.srcObject = stream;
-                        stream.getTracks().forEach(function (track) {
-                            track.stop();
-                        });
-                        //console.log("END");
-                        clearInterval(time_loop);
-
-                        document
-                            .getElementsByTagName("head")[0]
-                            .appendChild(meta);
-                    }
-
-                    function errorCallback(error) {
-                        //console.log("cv");
-                    }
-
-                    navigator.getUserMedia(
-                        constraints,
-                        successCallback,
-                        errorCallback
-                    );
-                }, 1000);
+            function successCallback(stream) {
+                video.srcObject = stream;
+                video.play();
             }
-        </script> -->
+
+            function errorCallback(error) {
+                //console.log("cv");
+            }
+
+            navigator.getUserMedia(
+                constraints,
+                successCallback,
+                errorCallback
+            );
+
+        </script>
     </body>
 </html>

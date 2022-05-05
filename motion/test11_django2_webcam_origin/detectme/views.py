@@ -371,7 +371,6 @@ def detectme_XHandsUp(request):
 @gzip.gzip_page
 def detectme_Stretching(request):
     try:
-        ########################## 동영상을 안 띄우면 반환 가능
         return StreamingHttpResponse(gen(Openpose(),"Stretching"), content_type="multipart/x-mixed-replace;boundary=frame")
     except:  # This is bad! replace it with proper handling
         print("에러입니다...")
