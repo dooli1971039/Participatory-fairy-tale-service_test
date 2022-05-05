@@ -27,13 +27,19 @@
 
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script type="text/javascript">
-            setInterval(function () {
+
+            setTimeout(later,3000);
+
+            function later(){
+                result=setInterval(function () {
                 $.ajax({
                     url: "/get_data",
                     dataType: "json",
                     success: function (data) {
                         if (data.return_result != "") {
-                            window.location = "/result";
+                            console.log(data.return_result)
+                            //window.location = "/result";
+                            clearInterval(result);
                         }
                     },
                     error: function (request, status, error) {
@@ -41,6 +47,8 @@
                     },
                 });
             }, 1000);
+            }
+            
         </script>
 
         <!-- <script type="text/javascript">
