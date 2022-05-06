@@ -55,6 +55,7 @@ let count_time = setInterval(function(){
             clearInterval(count_time);
             
             //이러고 다음 페이지로 넘어가면 될듯
+            window.location.href = 'home.html';
         }
         keep_time[pose_status]++; //시간은 항상 세고 있다.
     }
