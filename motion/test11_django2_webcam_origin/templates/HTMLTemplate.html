@@ -12,48 +12,78 @@
         <table>
             <tr>
                 <td>
-                    <!-- <img
-                        src="/detectme_{{pose_type}}"
-                        style="width: 320px; height: 240px"
-                        id="cv_img"
-                    /> -->
                     <video id="videoInput"></video>
                 </td>
                 <td>
-                    <h2><a href="/">돌아가기</a></h2>
+                    <canvas id="camCanvas" style="display: none"></canvas>
+                    <div class="output">
+                        <img
+                            id="photo"
+                            alt="The screen capture will appear in this box."
+                            style="display: none"
+                        />
+                    </div>
                 </td>
+
+                <h2><a href="/">돌아가기</a></h2>
+                <h1 id="seconds"></h1>
             </tr>
         </table>
 
-
         <script async src="https://docs.opencv.org/3.4/opencv.js"></script>
         <script type="text/javascript">
+            var constraints = {
+                audio: false,
+                video: {width: 320, height: 240},
+            };
+            const cameraView = document.getElementById("videoInput");
+            const cameraSensor = document.getElementById("camCanvas");
+            const photo = document.getElementById("photo");
 
-            navigator.getUserMedia =
-                navigator.getUserMedia ||
-                navigator.webkitGetUserMedia ||
-                navigator.mozGetUserMedia;
+            function cameraStart() {
+                //카메라 켜기
+                navigator.mediaDevices
+                    .getUserMedia(constraints)
+                    .then(function (stream) {
+                        track = stream.getTracks()[0];
+                        cameraView.srcObject = stream;
+                        cameraView.play(); //카메라를 프론트에서 실행
+                    })
+                    .catch(function (error) {
+                        console.error("카메라에 문제가 있습니다.", error);
+                    });
 
-            var constraints = {audio: false, video: true};
-
-
-            var video = document.getElementById("videoInput");
-
-            function successCallback(stream) {
-                video.srcObject = stream;
-                video.play();
+                //초 카운트
+                countSeconds();
             }
 
-            function errorCallback(error) {
-                //console.log("cv");
+            function takePhoto() {
+                cameraSensor.width = cameraView.videoWidth;
+                cameraSensor.height = cameraView.videoHeight;
+                cameraSensor.getContext("2d").drawImage(cameraView, 0, 0);
+
+                var data = cameraSensor.toDataURL("image/jpeg");
+                photo.setAttribute("src", data);
+                photo.style = "";
             }
 
-            navigator.getUserMedia(
-                constraints,
-                successCallback,
-                errorCallback
-            );
+            function countSeconds() {
+                const sec = document.getElementById("seconds");
+                let count = 1;
+                timer = setInterval(function () {
+                    sec.innerText = count + "초";
+                    count += 1;
 
+                    if (count == 4) {
+                        sec.innerText = "찰칵";
+                        takePhoto();
+                        clearInterval(timer);
+                    }
+                }, 1000);
+            }
+
+            // 페이지가 로드되면 함수 실행
+            window.addEventListener("load", cameraStart, false);
         </script>
     </body>
 </html>
