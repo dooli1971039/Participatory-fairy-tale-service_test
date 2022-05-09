@@ -36,12 +36,21 @@ posenet.load().then((model) => {
 let count_time = setInterval(function () {
     if (pose_count >= 7) {
         clearInterval(count_time);
-
+        result_label.innerText = "성공하셨습니다.";
+        //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
+        setTimeout(function () {
+            window.location.href = "home.html";
+        }, 1000);
+    } else if (keep_time[2] >= 20) {
+        //초를 얼마나 있다가 할지 몰라서 대충 20초로 해둠
+        clearInterval(count_time);
+        result_label.innerText = "실패하셨습니다.";
         //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
         setTimeout(function () {
             window.location.href = "home.html";
         }, 1000);
     }
+    keep_time[2]++;
 }, 1000);
 
 //Stretch - Stand - HandsUp - Stand: 1회
