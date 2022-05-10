@@ -4,6 +4,13 @@
 
 for 2022-1 캡스톤디자인프로젝트B
 
+
+## posenet 모션인식
+https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test14_posnet/home.html
+
+
+
+
 ## OX 모션인식
 https://dooli1971039.github.io/Participatory-fairy-tale-service_test/motion/test6_OX/index.html
 
