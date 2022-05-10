@@ -17,6 +17,7 @@ posenet.load().then((model) => {
     video.onloadeddata = (e) => {
         //비디오가 load된 다음에 predict하도록. (안하면 콘솔에 에러뜸)
         predict();
+        window.parent.postMessage({message: pose_count}, "*"); //0회가 보내져야 하는데...
     };
 
     function predict() {
@@ -59,6 +60,7 @@ function check_Pose2(pose) {
         if (tmp[0] == 1 && tmp[1] == 1) {
             tmp[0] = tmp[1] = 0;
             pose_count++;
+            window.parent.postMessage({message: pose_count}, "*");
         }
     } else if (check_Stretch(pose)) {
         tmp[0] = 1;
@@ -67,7 +69,6 @@ function check_Pose2(pose) {
         tmp[1] = 1;
         pose_status = 1;
     }
-    window.parent.postMessage({message: pose_count}, "*");
     // if (tmp[0] == 0 && tmp[1] == 0 && tmp[2] == 0 && check_Stretch(pose)) {
     //     tmp[0] = 1;
     // } else if (tmp[0] == 1 && tmp[1] == 0 && tmp[2] == 0 && check_Stand(pose)) {
