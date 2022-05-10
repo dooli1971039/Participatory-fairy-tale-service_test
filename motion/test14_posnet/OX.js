@@ -40,10 +40,10 @@ let count_time = setInterval(function () {
         keep_time[pose_status]++;
     } else {
         if (pose_status == 0)
-            result_label.innerText = `O를 ${keep_time[pose_status]}초 유지하셨습니다.`;
+            window.parent.postMessage({message: `O를 ${keep_time[pose_status]}초 유지하셨습니다.`}, "*");
         else if (pose_status == 1)
-            result_label.innerText = `X를 ${keep_time[pose_status]}초 유지하셨습니다.`;
-        else if (pose_status == 2) result_label.innerText = `포즈를 취해주세요.`;
+            window.parent.postMessage({message: `X를 ${keep_time[pose_status]}초 유지하셨습니다.`}, "*");
+        else if (pose_status == 2) window.parent.postMessage({message: `포즈를 취해주세요.`}, "*");
 
         if (pose_status != 2 && keep_time[pose_status] == 5) {
             if (pose_status == 0) {
@@ -167,13 +167,7 @@ function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
     adjacentKeyPoints.forEach((keypoints) => {
-        drawSegment(
-            toTuple(keypoints[0].position),
-            toTuple(keypoints[1].position),
-            color,
-            scale,
-            ctx
-        );
+        drawSegment(toTuple(keypoints[0].position), toTuple(keypoints[1].position), color, scale, ctx);
     });
 }
 

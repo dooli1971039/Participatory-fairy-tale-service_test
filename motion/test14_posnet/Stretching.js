@@ -40,18 +40,16 @@ let count_time = setInterval(function () {
         keep_time[pose_status]++;
     } else {
         if (pose_status == 0)
-            result_label.innerText = `자세를 ${keep_time[pose_status]}초 유지하셨습니다.`;
-        else if (pose_status == 2) result_label.innerText = `포즈를 취해주세요.`;
+            window.parent.postMessage({message: `자세를 ${keep_time[pose_status]}초 유지하셨습니다.`}, "*");
+        else if (pose_status == 2) window.parent.postMessage({message: `포즈를 취해주세요.`}, "*");
 
         if (keep_time[0] == 10 || keep_time[1] >= 20) {
             //전체 시간 체크 (1번 인덱스)
             if (keep_time[0] >= 10) {
                 //new Audio(URL + "O_choose.mp3").play();
-                result_label.innerText = `자세 유지에 성공하셨습니다.`;
                 result_message = "Success";
             } else {
                 //new Audio(URL + "X_choose.mp3").play();
-                result_label.innerText = `자세 유지에 실패하셨습니다.`;
                 result_message = "Fail";
             }
             clearInterval(count_time);
@@ -163,13 +161,7 @@ function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
     adjacentKeyPoints.forEach((keypoints) => {
-        drawSegment(
-            toTuple(keypoints[0].position),
-            toTuple(keypoints[1].position),
-            color,
-            scale,
-            ctx
-        );
+        drawSegment(toTuple(keypoints[0].position), toTuple(keypoints[1].position), color, scale, ctx);
     });
 }
 
