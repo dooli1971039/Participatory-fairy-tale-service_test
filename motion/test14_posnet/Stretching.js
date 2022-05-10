@@ -106,6 +106,7 @@ function check_O(pose){
 }
 
 function check_Stretching(pose){
+    rs = pose.keypoints[6].position //오른쪽 어깨
     rh=pose.keypoints[12].position; //오른쪽 골반
     rk=pose.keypoints[14].position; //오른쪽 무릎
     ra=pose.keypoints[16].position; //오른쪽 발목
@@ -113,18 +114,20 @@ function check_Stretching(pose){
     lh=pose.keypoints[11].position; //왼쪽 골반
     lk=pose.keypoints[13].position; //왼쪽 무릎
     la=pose.keypoints[15].position; //왼쪽 발목
+    ls = pose.keypoints[5].position; //왼쪽 어깨
 
     //기본적으로 O 조건을 만족시킬 것
     if(check_O(pose)){
-        //오른쪽을 구부리거나
-        if(rk.x<rh.x && rk.x<ra.x && ra.y<la.y){
-            return true;
-        }
-        //왼쪽을 구부리거나
-        else if(lk.x>lh.x && lk.x>la.x && la.y<ra.y){
-            return true;
-        }
-        else{
+        //어깨의 길이보다, 두 무릎사이의 길이가 더 클 것.
+        shoulder=ls.x-rs.x;
+        if(shoulder<=lk.x-rk.x){
+            //오른쪽을 구부리거나 or 왼쪽을 구부리거나
+            if(rk.x<rh.x || lk.x>lh.x){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
             return false;
         }
     }else{
