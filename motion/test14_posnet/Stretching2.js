@@ -5,7 +5,7 @@ const context = canvas.getContext("2d");
 const result_label = document.getElementById("result_label");
 let pose_status = 2;
 let keep_time = [0, 0, 0];
-
+let result_message="";
 //webcam을 enable하는 코드
 navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(function (stream) {
     video.srcObject = stream;
@@ -37,18 +37,23 @@ let count_time = setInterval(function () {
     if (pose_count >= 7) {
         clearInterval(count_time);
         result_label.innerText = "성공하셨습니다.";
-        //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
-        setTimeout(function () {
-            window.location.href = "home.html";
-        }, 1000);
+        result_message="Success";
+        window.parent.postMessage({ message: result_message }, '*');
+        // //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
+        // setTimeout(function () {
+        //     window.location.href = "home.html";
+        // }, 1000);
     } else if (keep_time[2] >= 20) {
         //초를 얼마나 있다가 할지 몰라서 대충 20초로 해둠
         clearInterval(count_time);
         result_label.innerText = "실패하셨습니다.";
-        //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
-        setTimeout(function () {
-            window.location.href = "home.html";
-        }, 1000);
+        result_message="Fail";
+        window.parent.postMessage({ message: result_message }, '*');
+
+        // //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
+        // setTimeout(function () {
+        //     window.location.href = "home.html";
+        // }, 1000);
     }
     keep_time[2]++;
 }, 1000);

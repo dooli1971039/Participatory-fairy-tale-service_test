@@ -5,7 +5,7 @@ const context = canvas.getContext("2d");
 const result_label=document.getElementById("result_label")
 let pose_status=2;
 let keep_time=[0,0,0];
-
+let result_message="";
 //webcam을 enable하는 코드
 navigator.mediaDevices.getUserMedia({ video: true, audio: false })
     .then(function (stream) {
@@ -48,14 +48,19 @@ let count_time = setInterval(function(){
             if (pose_status == 0) {
                 //new Audio(URL + "O_choose.mp3").play();
                 result_label.innerText = `O를 선택하셨습니다.`;
+                result_message="O";
             } else {
                 //new Audio(URL + "X_choose.mp3").play();
                 result_label.innerText = `X를 선택하셨습니다.`;
+                result_message="X";
             }
             clearInterval(count_time);
+            window.parent.postMessage({ message: result_message }, '*');
             
-            //이러고 2초 정도 있다가 다음 페이지로 넘어가면 될듯
-            setTimeout(function(){window.location.href = 'home.html';},2000);
+            // //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
+            // setTimeout(function(){
+            //     window.parent.postMessage({ message: result_message }, '*');
+            // },1000);
         }
         keep_time[pose_status]++; //시간은 항상 세고 있다.
     }
