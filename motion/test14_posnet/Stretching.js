@@ -42,8 +42,8 @@ let count_time = setInterval(function(){
         else if (pose_status == 2)
             result_label.innerText = `포즈를 취해주세요.`;
 
-        if (keep_time[0]==10 || keep_time[2]==8) {
-            if (pose_status == 0) {
+        if (keep_time[0]==10 || keep_time[1]>=20) { //전체 시간 체크 (1번 인덱스)
+            if (keep_time[0] >= 10) {
                 //new Audio(URL + "O_choose.mp3").play();
                 result_label.innerText = `자세 유지에 성공하셨습니다.`;
             } else {
@@ -57,6 +57,7 @@ let count_time = setInterval(function(){
         }
         keep_time[pose_status]++; //시간은 항상 세고 있다.
     }
+    keep_time[1]++; //잔체 시간 체크(20초)
 },1000);
 
 function check_Pose(pose){
