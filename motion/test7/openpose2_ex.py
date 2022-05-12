@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 from pathlib import Path
 
 # MPII에서 각 파트 번호, 선으로 연결될 POSE_PAIRS
@@ -21,8 +20,8 @@ weightsFile = str(BASE_DIR)+"/file/pose_iter_160000.caffemodel"
 # 위의 path에 있는 network 모델 불러오기
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
-#쿠다 사용 안하면 밑에 이미지를 줄이는게 나을지도...
-# net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA) #벡엔드로 쿠다를 사용하여 속도향상을 꾀한다.
+#쿠다 사용 안하면 밑에 이미지 크기를 줄이는게 나을 것이다
+# net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA) #벡엔드로 쿠다를 사용하여 속도향상을 꾀한다
 # net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA) # 쿠다 디바이스에 계산 요청
 
 
@@ -36,10 +35,11 @@ inputHeight=240;
 inputScale=1.0/255;
 
  
- #반복문을 통해 카메라에서 프레임을 지속적으로 받아옴
+#반복문을 통해 카메라에서 프레임을 지속적으로 받아옴
 while cv2.waitKey(1) <0:  #아무 키나 누르면 끝난다.
     #웹캠으로부터 영상 가져옴
     hasFrame, frame = capture.read()  
+    
     #영상이 커서 느리면 사이즈를 줄이자
     #frame=cv2.resize(frame,dsize=(320,240),interpolation=cv2.INTER_AREA)
     
@@ -94,7 +94,7 @@ while cv2.waitKey(1) <0:  #아무 키나 누르면 끝난다.
         partB = pair[1]             # Neck
         partB = BODY_PARTS[partB]   # 1
         
-        #print(partA," 와 ", partB, " 연결\n")
+        #partA와 partB 사이에 선을 그어줌 (cv2.line)
         if points[partA] and points[partB]:
             cv2.line(frame, points[partA], points[partB], (0, 255, 0), 2)
     

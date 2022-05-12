@@ -20,7 +20,7 @@ weightsFile = "D:/Participatory-fairy-tale-service_test/motion/test7/file/pose_i
 net = cv2.dnn.readNetFromCaffe(protoFile, weightsFile)
 
 
-###카메라랑 연결...?
+###카메라랑 연결
 capture = cv2.VideoCapture(0) #카메라 정보 받아옴
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640) #카메라 속성 설정
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480) # width:너비, height: 높이
