@@ -5,7 +5,7 @@ const context = canvas.getContext("2d");
 const result_label = document.getElementById("result_label");
 let pose_status = 2;
 let keep_time = [0, 0, 0];
-let result_message="";
+let result_message = "";
 //webcam을 enable하는 코드
 navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(function (stream) {
     video.srcObject = stream;
@@ -17,6 +17,7 @@ posenet.load().then((model) => {
     video.onloadeddata = (e) => {
         //비디오가 load된 다음에 predict하도록. (안하면 콘솔에 에러뜸)
         predict();
+        window.parent.postMessage({message: pose_count}, "*"); //0회가 보내져야 하는데...
     };
 
     function predict() {
@@ -36,24 +37,14 @@ posenet.load().then((model) => {
 let count_time = setInterval(function () {
     if (pose_count >= 7) {
         clearInterval(count_time);
-        result_label.innerText = "성공하셨습니다.";
-        result_message="Success";
-        window.parent.postMessage({ message: result_message }, '*');
-        // //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
-        // setTimeout(function () {
-        //     window.location.href = "home.html";
-        // }, 1000);
+        result_message = "Success";
+        window.parent.postMessage({message: result_message}, "*");
     } else if (keep_time[2] >= 35) {
         //초를 얼마나 있다가 할지 몰라서 대충 35초로 해둠
         clearInterval(count_time);
-        result_label.innerText = "실패하셨습니다.";
-        result_message="Fail";
-        window.parent.postMessage({ message: result_message }, '*');
 
-        // //이러고 1초 정도 있다가 다음 페이지로 넘어가면 될듯
-        // setTimeout(function () {
-        //     window.location.href = "home.html";
-        // }, 1000);
+        result_message = "Fail";
+        window.parent.postMessage({message: result_message}, "*");
     }
     keep_time[2]++;
 }, 1000);
@@ -68,6 +59,7 @@ function check_Pose2(pose) {
         if (tmp[0] == 1 && tmp[1] == 1) {
             tmp[0] = tmp[1] = 0;
             pose_count++;
+            window.parent.postMessage({message: pose_count}, "*");
         }
     } else if (check_Stretch(pose)) {
         tmp[0] = 1;
@@ -76,7 +68,6 @@ function check_Pose2(pose) {
         tmp[1] = 1;
         pose_status = 1;
     }
-    result_label.innerText = pose_count + "회";
     // if (tmp[0] == 0 && tmp[1] == 0 && tmp[2] == 0 && check_Stretch(pose)) {
     //     tmp[0] = 1;
     // } else if (tmp[0] == 1 && tmp[1] == 0 && tmp[2] == 0 && check_Stand(pose)) {
@@ -130,13 +121,7 @@ function check_Stretch(pose) {
     if (head.y < re.y && head.y < le.y && re.y < rb.y && le.y < lb.y) {
         //오른쪽 손목 - 오른쪽 팔꿈치 - 오른쪽 어깨 - 머리 - 왼쪽 어깨 - 왼쪽 팔꿈치 - 왼쪽 손목
         //인식률을 위해 조건을 완화하자
-        if (
-            re.x < rs.x &&
-            rs.x < head.x &&
-            head.x < ls.x &&
-            ls.x < le.x &&
-            (rw.x < re.x || le.x < lw.x)
-        ) {
+        if (re.x < rs.x && rs.x < head.x && head.x < ls.x && ls.x < le.x && (rw.x < re.x || le.x < lw.x)) {
             return true;
         } else {
             return false;
@@ -185,15 +170,14 @@ const lineWidth = 2;
 function toTuple({y, x}) {
     return [y, x];
 }
+
 function drawPoint(ctx, y, x, r, color) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
     ctx.fillStyle = color;
     ctx.fill();
 }
-/**
- * Draws a line on a canvas, i.e. a joint
- */
+
 function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
     ctx.beginPath();
     ctx.moveTo(ax * scale, ay * scale);
@@ -202,24 +186,14 @@ function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
     ctx.strokeStyle = color;
     ctx.stroke();
 }
-/**
- * Draws a pose skeleton by looking up all adjacent keypoints/joints
- */
+
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
     adjacentKeyPoints.forEach((keypoints) => {
-        drawSegment(
-            toTuple(keypoints[0].position),
-            toTuple(keypoints[1].position),
-            color,
-            scale,
-            ctx
-        );
+        drawSegment(toTuple(keypoints[0].position), toTuple(keypoints[1].position), color, scale, ctx);
     });
 }
-/**
- * Draw pose keypoints onto a canvas
- */
+
 function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
     for (let i = 0; i < keypoints.length; i++) {
         const keypoint = keypoints[i];
@@ -230,11 +204,7 @@ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
         drawPoint(ctx, y * scale, x * scale, 3, color);
     }
 }
-/**
- * Draw the bounding box of a pose. For example, for a whole person standing
- * in an image, the bounding box will begin at the nose and extend to one of
- * ankles
- */
+
 function drawBoundingBox(keypoints, ctx) {
     const boundingBox = posenet.getBoundingBox(keypoints);
     ctx.rect(
