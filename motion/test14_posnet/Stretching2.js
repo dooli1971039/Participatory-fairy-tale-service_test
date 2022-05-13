@@ -44,7 +44,7 @@ let count_time = setInterval(function () {
         //     window.location.href = "home.html";
         // }, 1000);
     } else if (keep_time[2] >= 35) {
-        //초를 얼마나 있다가 할지 몰라서 대충 20초로 해둠
+        //초를 얼마나 있다가 할지 몰라서 대충 35초로 해둠
         clearInterval(count_time);
         result_label.innerText = "실패하셨습니다.";
         result_message="Fail";
