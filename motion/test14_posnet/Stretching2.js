@@ -40,8 +40,8 @@ let count_time = setInterval(function () {
 
         result_message = "Success";
         window.parent.postMessage({message: result_message}, "*");
-    } else if (keep_time[2] >= 20) {
-        //초를 얼마나 있다가 할지 몰라서 대충 20초로 해둠
+    } else if (keep_time[2] >= 35) {
+        //초를 얼마나 있다가 할지 몰라서 대충 35초로 해둠
         clearInterval(count_time);
 
         result_message = "Fail";
@@ -122,13 +122,7 @@ function check_Stretch(pose) {
     if (head.y < re.y && head.y < le.y && re.y < rb.y && le.y < lb.y) {
         //오른쪽 손목 - 오른쪽 팔꿈치 - 오른쪽 어깨 - 머리 - 왼쪽 어깨 - 왼쪽 팔꿈치 - 왼쪽 손목
         //인식률을 위해 조건을 완화하자
-        if (
-            re.x < rs.x &&
-            rs.x < head.x &&
-            head.x < ls.x &&
-            ls.x < le.x &&
-            (rw.x < re.x || le.x < lw.x)
-        ) {
+        if (re.x < rs.x && rs.x < head.x && head.x < ls.x && ls.x < le.x && (rw.x < re.x || le.x < lw.x)) {
             return true;
         } else {
             return false;
@@ -197,13 +191,7 @@ function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
     adjacentKeyPoints.forEach((keypoints) => {
-        drawSegment(
-            toTuple(keypoints[0].position),
-            toTuple(keypoints[1].position),
-            color,
-            scale,
-            ctx
-        );
+        drawSegment(toTuple(keypoints[0].position), toTuple(keypoints[1].position), color, scale, ctx);
     });
 }
 
