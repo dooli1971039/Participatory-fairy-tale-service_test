@@ -33,6 +33,7 @@ posenet.load().then((model) => {
     }
 });
 
+/* Timer */
 let count_time = setInterval(function () {
     if (keep_time[pose_status] == 0) {
         //다른 모션에서 바뀌어 들어옴
@@ -47,10 +48,8 @@ let count_time = setInterval(function () {
 
         if (pose_status != 2 && keep_time[pose_status] == 5) {
             if (pose_status == 0) {
-                //new Audio(URL + "O_choose.mp3").play();
                 result_message = "O";
             } else {
-                //new Audio(URL + "X_choose.mp3").play();
                 result_message = "X";
             }
             clearInterval(count_time);
@@ -60,6 +59,7 @@ let count_time = setInterval(function () {
     }
 }, 1000);
 
+/* 자세 검출 함수들 */
 function check_OX(pose) {
     if (!check_O(pose) && !check_X(pose)) {
         pose_status = 2;
@@ -140,6 +140,7 @@ function check_X(pose) {
     }
 }
 
+/* PoseNet을 쓰면서 사용하는 함수들 코드 - 그냥 복사해서 쓰기 */
 //tensorflow에서 제공하는 js 파트
 const color = "aqua";
 const boundingBoxColor = "red";

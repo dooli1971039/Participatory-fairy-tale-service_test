@@ -3,11 +3,9 @@ const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 
 //webcam을 enable하는 코드
-navigator.mediaDevices
-    .getUserMedia({video: true, audio: false})
-    .then(function (stream) {
-        video.srcObject = stream;
-    });
+navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(function (stream) {
+    video.srcObject = stream;
+});
 
 //then 안쪽이 function(model){} 이렇게 쓰는거랑 같다 (인자가 하나라 중괄호가 없는 것)
 posenet.load().then((model) => {
@@ -30,6 +28,8 @@ posenet.load().then((model) => {
     }
 });
 
+/* PoseNet을 쓰면서 사용하는 함수들 코드 - 그냥 복사해서 쓰기*/
+
 //tensorflow에서 제공하는 js 파트
 const color = "aqua";
 const boundingBoxColor = "red";
@@ -46,9 +46,6 @@ function drawPoint(ctx, y, x, r, color) {
     ctx.fill();
 }
 
-/**
- * Draws a line on a canvas, i.e. a joint
- */
 function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
     ctx.beginPath();
     ctx.moveTo(ax * scale, ay * scale);
@@ -58,29 +55,14 @@ function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
     ctx.stroke();
 }
 
-/**
- * Draws a pose skeleton by looking up all adjacent keypoints/joints
- */
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
-    const adjacentKeyPoints = posenet.getAdjacentKeyPoints(
-        keypoints,
-        minConfidence
-    );
+    const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
 
     adjacentKeyPoints.forEach((keypoints) => {
-        drawSegment(
-            toTuple(keypoints[0].position),
-            toTuple(keypoints[1].position),
-            color,
-            scale,
-            ctx
-        );
+        drawSegment(toTuple(keypoints[0].position), toTuple(keypoints[1].position), color, scale, ctx);
     });
 }
 
-/**
- * Draw pose keypoints onto a canvas
- */
 function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
     for (let i = 0; i < keypoints.length; i++) {
         const keypoint = keypoints[i];
@@ -94,11 +76,6 @@ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
     }
 }
 
-/**
- * Draw the bounding box of a pose. For example, for a whole person standing
- * in an image, the bounding box will begin at the nose and extend to one of
- * ankles
- */
 function drawBoundingBox(keypoints, ctx) {
     const boundingBox = posenet.getBoundingBox(keypoints);
 
